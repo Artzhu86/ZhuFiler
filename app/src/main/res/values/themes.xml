@@ -1,0 +1,10 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+  <style name="Base.AppTheme" parent="Theme.Material3.DayNight.NoActionBar">
+  </style>
+
+  <style name="AppTheme" parent="Base.AppTheme" />
+
+  <style name="AppTheme.SubtitleTextStyle" parent="TextAppearance.AppCompat.Subhead">
+    <item name="android:textSize">14sp</item>
+  </style>
+</resources>
