@@ -1,60 +1,90 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.drawerlayout.widget.DrawerLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/drawer_layout"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
-    tools:context=".MainActivity">
+     xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:app="http://schemas.android.com/apk/res-auto"
+     xmlns:tools="http://schemas.android.com/tools"
+     android:layout_height="match_parent"
+     android:layout_width="match_parent"
+     android:fitsSystemWindows="true"
+     android:id="@+id/drawer_layout"
+     tools:context=".MainActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+         android:layout_height="match_parent"
+         android:layout_width="match_parent">
 
         <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimaryContainer"
-            app:titleTextColor="?attr/colorOnSurface"
-            app:subtitleTextColor="?attr/colorOnSurface"
-            app:layout_constraintTop_toTopOf="parent" />
+             android:layout_height="?attr/actionBarSize"
+             android:layout_width="match_parent"
+             app:subtitleTextColor="?attr/colorOnSurface"
+             android:background="?attr/colorPrimaryContainer"
+             app:layout_constraintTop_toTopOf="parent"
+             app:titleTextColor="?attr/colorOnSurface"
+             android:id="@+id/toolbar">
+
+        </com.google.android.material.appbar.MaterialToolbar>
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recycler_view"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            app:layout_constraintTop_toBottomOf="@+id/toolbar"
-            app:layout_constraintBottom_toBottomOf="parent" />
+             android:layout_height="0dp"
+             android:layout_width="match_parent"
+             app:layout_constraintBottom_toBottomOf="parent"
+             app:layout_constraintTop_toBottomOf="@+id/toolbar"
+             android:id="@+id/recycler_view" />
 
         <ProgressBar
-            android:id="@+id/progress_bar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:visibility="gone"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
+             android:layout_height="wrap_content"
+             android:layout_width="wrap_content"
+             android:visibility="gone"
+             app:layout_constraintTop_toTopOf="parent"
+             app:layout_constraintBottom_toBottomOf="parent"
+             android:id="@+id/progress_bar"
+             app:layout_constraintLeft_toLeftOf="parent"
+             app:layout_constraintRight_toRightOf="parent" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/fab_add"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@android:drawable/ic_input_add"
-            android:layout_margin="16dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintRight_toRightOf="parent" />
+             android:layout_height="wrap_content"
+             android:layout_width="wrap_content"
+             android:src="@android:drawable/ic_input_add"
+             android:layout_margin="16dp"
+             app:layout_constraintBottom_toBottomOf="parent"
+             android:id="@+id/fab_add"
+             app:layout_constraintRight_toRightOf="parent" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+             android:layout_height="wrap_content"
+             android:layout_width="wrap_content"
+             android:layout_marginBottom="80dp"
+             android:visibility="gone"
+             android:src="@drawable/outline_content_paste_24"
+             android:layout_marginEnd="16dp"
+             app:backgroundTint="?attr/colorPrimary"
+             app:tint="?attr/colorOnPrimary"
+             app:layout_constraintEnd_toEndOf="parent"
+             app:layout_constraintBottom_toBottomOf="parent"
+             android:id="@+id/fab_paste" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+             android:layout_height="wrap_content"
+             android:layout_width="wrap_content"
+             android:layout_marginBottom="140dp"
+             android:visibility="gone"
+             android:src="@drawable/outline_close_24"
+             android:layout_marginEnd="16dp"
+             app:backgroundTint="?attr/colorPrimary"
+             app:tint="?attr/colorOnPrimary"
+             app:layout_constraintEnd_toEndOf="parent"
+             app:layout_constraintBottom_toBottomOf="parent"
+             android:id="@+id/fab_cancel" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <com.google.android.material.navigation.NavigationView
-        android:id="@+id/navigation_view"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:layout_gravity="start"
-        android:fitsSystemWindows="true" />
+         android:layout_height="match_parent"
+         android:layout_width="wrap_content"
+         android:fitsSystemWindows="true"
+         android:id="@+id/navigation_view"
+         android:layout_gravity="start">
+
+    </com.google.android.material.navigation.NavigationView>
 
 </androidx.drawerlayout.widget.DrawerLayout>

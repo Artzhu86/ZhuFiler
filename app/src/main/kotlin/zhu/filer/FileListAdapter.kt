@@ -8,18 +8,17 @@ import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.RippleDrawable
 import android.content.res.ColorStateList
-import android.util.TypedValue
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import java.io.File
 
-data class FileItem(val file: File, val displayName: String, val icon: String, val subtitle: String)
+data class FileItem(val file: File, val displayName: String, val iconRes: Int, val subtitle: String)
 
 class FileListAdapter(
     private val onItemClick: (File, Int) -> Unit,
@@ -132,13 +131,13 @@ class FileListAdapter(
             }
         }
 
-        val iconTv = TextView(context).apply {
-            textSize = 24f
-            layoutParams = LinearLayout.LayoutParams(dpToPx(context, 32), ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+        val iconIv = ImageView(context).apply {
+            layoutParams = LinearLayout.LayoutParams(dpToPx(context, 32), dpToPx(context, 32)).apply {
                 gravity = Gravity.CENTER_VERTICAL
             }
+            scaleType = ImageView.ScaleType.FIT_CENTER
         }
-        container.addView(iconTv)
+        container.addView(iconIv)
 
         val nameContainer = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
@@ -168,12 +167,12 @@ class FileListAdapter(
 
         container.addView(nameContainer)
 
-        return ViewHolder(container, iconTv, nameTv, subtitleTv)
+        return ViewHolder(container, iconIv, nameTv, subtitleTv)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = items[position]
-        holder.iconTv.text = item.icon
+        holder.iconIv.setImageResource(item.iconRes)
         holder.nameTv.text = item.displayName
         holder.subtitleTv.text = item.subtitle
 
@@ -283,7 +282,7 @@ class FileListAdapter(
 
     inner class ViewHolder(
         itemView: View,
-        val iconTv: TextView,
+        val iconIv: ImageView,
         val nameTv: TextView,
         val subtitleTv: TextView
     ) : RecyclerView.ViewHolder(itemView)

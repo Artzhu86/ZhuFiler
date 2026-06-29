@@ -47,7 +47,7 @@ fun showNavigateDialog(activity: AppCompatActivity, currentDir: File, loadDir: s
                 if (targetDir.exists() && targetDir.isDirectory) {
                     activity.lifecycleScope.launch { loadDir(targetDir) }
                 } else {
-                    toast(activity, "目录不存在或不是目录")
+                    toast(activity, "目录无效")
                 }
             }
         }
@@ -55,7 +55,7 @@ fun showNavigateDialog(activity: AppCompatActivity, currentDir: File, loadDir: s
             val recent = getRecentDirs(prefs)
             val files = recent.map { File(it) }
             val items = files.map { file ->
-                FileItem(file, file.name, "📁", file.absolutePath)
+                FileItem(file, file.name, R.drawable.outline_folder_24, file.absolutePath)
             }
 
             lateinit var recentDialog: AlertDialog
@@ -165,7 +165,7 @@ fun showRenameDialog(activity: AppCompatActivity, currentDir: File, loadDir: sus
                             toast(activity, "重命名成功")
                             loadDir(currentDir)
                         } else {
-                            toast(activity, "重命名失败，请检查权限")
+                            toast(activity, "重命名失败")
                         }
                     }
                 }
@@ -176,7 +176,14 @@ fun showRenameDialog(activity: AppCompatActivity, currentDir: File, loadDir: sus
         .let { focusAndShowKeyboard(editText, it) }
 }
 
-fun showOps(activity: AppCompatActivity, currentDir: File, loadDir: suspend (File) -> Unit, file: File, progressBar: android.widget.ProgressBar) {
+fun showOps(
+    activity: AppCompatActivity,
+    currentDir: File,
+    loadDir: suspend (File) -> Unit,
+    file: File,
+    progressBar: android.widget.ProgressBar,
+    onCopyCut: (File, Boolean) -> Unit = { _, _ -> }
+) {
     val items = mutableListOf("复制", "移动", "重命名", "删除")
     if (!file.isDirectory) {
         items.add("打开方式")
@@ -190,8 +197,8 @@ fun showOps(activity: AppCompatActivity, currentDir: File, loadDir: suspend (Fil
             val action = items[which]
             when (action) {
                 "重命名" -> showRenameDialog(activity, currentDir, loadDir, file)
-                "复制" -> showCopyMoveDialog(activity, currentDir, loadDir, file, isMove = false, progressBar)
-                "移动" -> showCopyMoveDialog(activity, currentDir, loadDir, file, isMove = true, progressBar)
+                "复制" -> onCopyCut(file, false)
+                "移动" -> onCopyCut(file, true)
                 "删除" -> {
                     MaterialAlertDialogBuilder(activity).setTitle("删除").setMessage("确定删除 ${file.name} 吗？")
                         .setPositiveButton("删除") { _, _ ->
@@ -210,92 +217,6 @@ fun showOps(activity: AppCompatActivity, currentDir: File, loadDir: suspend (Fil
         .setNegativeButton("取消", null)
         .create()
     dialog.show()
-}
-
-fun showCopyMoveDialog(activity: AppCompatActivity, currentDir: File, loadDir: suspend (File) -> Unit, source: File, isMove: Boolean, progressBar: android.widget.ProgressBar) {
-    val defaultPath = if (isMove) source.absolutePath else File(currentDir, source.name).absolutePath
-
-    val rootLayout = LinearLayout(activity).apply {
-        orientation = LinearLayout.VERTICAL
-        setPadding(dpToPx(activity, 16), dpToPx(activity, 16), dpToPx(activity, 16), 0)
-    }
-    val (inputLayout, editText) = createInput(activity, defaultPath)
-    rootLayout.addView(inputLayout)
-    editText.selectAll()
-
-    MaterialAlertDialogBuilder(activity)
-        .setTitle(if (isMove) "移动" else "复制")
-        .setView(rootLayout)
-        .setPositiveButton("确定") { _, _ ->
-            val targetPath = editText.text?.toString()?.trim() ?: ""
-            if (targetPath.isEmpty()) { toast(activity, "请输入目标路径"); return@setPositiveButton }
-
-            val targetFile = if (targetPath.startsWith("/")) File(targetPath) else File(currentDir, targetPath)
-
-            val finalTarget = if (targetFile.exists() && targetFile.isDirectory) {
-                File(targetFile, source.name)
-            } else targetFile
-
-            if (finalTarget.absolutePath == source.absolutePath) {
-                toast(activity, "目标与源相同")
-                return@setPositiveButton
-            }
-            if (source.isDirectory && finalTarget.absolutePath.startsWith(source.absolutePath + File.separator)) {
-                toast(activity, "不能移动到自身内部")
-                return@setPositiveButton
-            }
-
-            if (finalTarget.exists()) {
-                MaterialAlertDialogBuilder(activity)
-                    .setTitle("目标已存在")
-                    .setMessage("${finalTarget.name} 已存在，是否覆盖？")
-                    .setPositiveButton("覆盖") { _, _ ->
-                        performFileOperation(activity, currentDir, loadDir, source, finalTarget, isMove, true, progressBar)
-                    }
-                    .setNegativeButton("跳过") { _, _ -> toast(activity, "已跳过") }
-                    .show()
-            } else {
-                performFileOperation(activity, currentDir, loadDir, source, finalTarget, isMove, false, progressBar)
-            }
-        }
-        .setNegativeButton("取消", null)
-        .show()
-        .let { focusAndShowKeyboard(editText, it) }
-}
-
-private fun performFileOperation(activity: AppCompatActivity, currentDir: File, loadDir: suspend (File) -> Unit, source: File, target: File, isMove: Boolean, overwrite: Boolean, progressBar: android.widget.ProgressBar) {
-    activity.lifecycleScope.launch {
-        progressBar.isVisible = true
-        val result = withContext(Dispatchers.IO) {
-            runCatching {
-                val targetParent = target.parentFile
-                if (targetParent != null && !targetParent.canWrite()) throw Exception("目标目录不可写")
-                if (overwrite && target.exists()) {
-                    if (target.isDirectory) target.deleteRecursively() else target.delete()
-                }
-                when {
-                    isMove -> {
-                        if (!source.renameTo(target)) {
-                            if (source.isDirectory) {
-                                source.copyRecursively(target, overwrite = true)
-                                source.deleteRecursively()
-                            } else {
-                                source.copyTo(target, overwrite = true)
-                                source.delete()
-                            }
-                        }
-                    }
-                    else -> {
-                        if (source.isDirectory) source.copyRecursively(target, overwrite = true)
-                        else source.copyTo(target, overwrite = true)
-                    }
-                }
-            }
-        }
-        progressBar.isVisible = false
-        if (result.isFailure) toast(activity, "操作失败: ${result.exceptionOrNull()?.message ?: "未知错误"}")
-        loadDir(currentDir)
-    }
 }
 
 fun applySelectableEffectToListView(listView: ListView) {

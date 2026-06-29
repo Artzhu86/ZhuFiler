@@ -135,10 +135,10 @@ class FindHelper(
                     if (query.isEmpty() || file.name.contains(query, ignoreCase = true)) {
                         val timeStr = DATE_FORMAT.format(Date(file.lastModified()))
                         val subtitle = if (file.isDirectory) timeStr else "$timeStr  ${Formatter.formatFileSize(activity, file.length())}"
-                        val icon = if (file.isDirectory) "📁" else "📄"
+                        val iconRes = if (file.isDirectory) R.drawable.outline_folder_24 else R.drawable.outline_insert_drive_file_24
 
                         foundCount++
-                        val item = FileItem(file, file.name, icon, subtitle)
+                        val item = FileItem(file, file.name, iconRes, subtitle)
                         resultItems.add(item)
 
                         lastResultItems = resultItems.toList()
