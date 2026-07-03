@@ -27,8 +27,11 @@ import kotlinx.coroutines.launch
 import java.io.File
 
 import com.google.android.material.R as materialR
+import zhu.filer.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivityMainBinding
 
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var navigationView: NavigationView
@@ -36,7 +39,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var toolbar: MaterialToolbar
     private lateinit var progressBar: android.widget.ProgressBar
     private lateinit var fabAdd: FloatingActionButton
-    private lateinit var fabPaste: FloatingActionButton
+    private lateinit var fabAction: FloatingActionButton
     private lateinit var fabCancel: FloatingActionButton
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
 
@@ -59,9 +62,12 @@ class MainActivity : AppCompatActivity() {
     private val containerColor: Int by lazy { getThemeColor(this, materialR.attr.colorPrimaryContainer) }
     private var toolbarAlphaThreshold: Int = 0
 
+    private var lastSwipeSelectPos: Int? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -94,10 +100,13 @@ class MainActivity : AppCompatActivity() {
                 }
                 statsSubtitle = supportActionBar?.subtitle?.toString()
                 updateToolbarTitle()
+                updateMultiSelectFabs()
+                fabManager.updatePasteButtons(clipboard)
             }
         )
 
         setupRecyclerView()
+        binding.fastScroller.attach(recyclerView)
         setupSwipeToSelect()
         setupFabs()
 
@@ -113,7 +122,8 @@ class MainActivity : AppCompatActivity() {
             loadDir = ::loadDir,
             progressBar = progressBar,
             clipboardManager = clipboard,
-            onClipboardChanged = { fabManager.updatePasteButtons(clipboard) }
+            onClipboardChanged = { fabManager.updatePasteButtons(clipboard) },
+            onExitMultiSelect = { updateMultiSelectFabs() }
         )
 
         backPressHandler.setup(
@@ -142,14 +152,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initViews() {
-        drawerLayout = findViewById(R.id.drawer_layout)
-        navigationView = findViewById(R.id.navigation_view)
-        recyclerView = findViewById(R.id.recycler_view)
-        toolbar = findViewById(R.id.toolbar)
-        progressBar = findViewById(R.id.progress_bar)
-        fabAdd = findViewById(R.id.fab_add)
-        fabPaste = findViewById(R.id.fab_paste)
-        fabCancel = findViewById(R.id.fab_cancel)
+        drawerLayout = binding.drawerLayout
+        navigationView = binding.navigationView
+        recyclerView = binding.recyclerView
+        toolbar = binding.toolbar
+        progressBar = binding.progressBar
+        fabAdd = binding.fabAdd
+        fabAction = binding.fabAction
+        fabCancel = binding.fabCancel
     }
 
     private fun setupToolbar() {
@@ -188,9 +198,11 @@ class MainActivity : AppCompatActivity() {
     private fun setupRecyclerView() {
         adapter = FileListAdapter(
             onItemClick = { file, pos ->
+                lastSwipeSelectPos = null
                 if (multiSelectController.isInMultiSelectMode()) {
                     multiSelectController.toggleSelection(pos)
                     updateToolbarTitle()
+                    updateMultiSelectFabs()
                     if (!adapter.hasSelection()) exitMultiSelect()
                     return@FileListAdapter
                 }
@@ -208,6 +220,7 @@ class MainActivity : AppCompatActivity() {
                 }
             },
             onItemLongClick = { file, pos ->
+                lastSwipeSelectPos = null
                 if (multiSelectController.isInMultiSelectMode()) {
                     if (pos == 0 && browserController.canNavigateUp()) return@FileListAdapter true
                     multiSelectController.showBatchOperationMenu()
@@ -255,25 +268,44 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupSwipeToSelect() {
-        val callback = SwipeToSelectCallback(adapter) { position ->
-            if (position != RecyclerView.NO_POSITION && position < adapter.itemCount) {
-                if (position == 0 && browserController.canNavigateUp()) return@SwipeToSelectCallback
+        val callback = SwipeToSelectCallback(adapter) { position, willBeSelected ->
+            if (position == 0 && browserController.canNavigateUp()) return@SwipeToSelectCallback
+            if (!willBeSelected) {
+                lastSwipeSelectPos = null
                 if (multiSelectController.isInMultiSelectMode()) {
                     multiSelectController.toggleSelection(position)
-                } else {
-                    multiSelectController.selectPosition(position)
+                    updateToolbarTitle()
+                    updateMultiSelectFabs()
+                    if (!adapter.hasSelection()) exitMultiSelect()
                 }
-                updateToolbarTitle()
-                if (!adapter.hasSelection()) exitMultiSelect()
+                return@SwipeToSelectCallback
             }
+            val lastPos = lastSwipeSelectPos
+            if (lastPos != null && lastPos != position && multiSelectController.isInMultiSelectMode()) {
+                val range = if (lastPos < position) lastPos..position else position..lastPos
+                range.forEach { adapter.selectPosition(it) }
+            } else {
+                if (!multiSelectController.isInMultiSelectMode()) {
+                    multiSelectController.selectPosition(position)
+                } else {
+                    multiSelectController.toggleSelection(position)
+                }
+            }
+            lastSwipeSelectPos = position
+            updateToolbarTitle()
+            updateMultiSelectFabs()
         }
         ItemTouchHelper(callback).attachToRecyclerView(recyclerView)
     }
 
     private fun setupFabs() {
-        fabAdd.setOnClickListener { showCreate(this, browserController.currentDir, ::loadDir) }
+        fabAdd.setOnClickListener { 
+            showCreate(this, browserController.currentDir) { dir, highlightPath ->
+                lifecycleScope.launch { refreshDir(dir, highlightPath) }
+            }
+        }
         fabManager.setup(
-            fabPaste = fabPaste,
+            fabAction = fabAction,
             fabCancel = fabCancel,
             clipboard = clipboard,
             targetDirProvider = { browserController.currentDir },
@@ -285,6 +317,24 @@ class MainActivity : AppCompatActivity() {
                 fabManager.updatePasteButtons(clipboard)
             }
         )
+        fabManager.setMultiSelectActions(
+            onSelectAll = {
+                val startPos = if (browserController.canNavigateUp()) 1 else 0
+                for (i in startPos until adapter.itemCount) {
+                    adapter.selectPosition(i)
+                }
+                updateToolbarTitle()
+                updateMultiSelectFabs()
+            },
+            onDeselect = {
+                adapter.clearSelection()
+                exitMultiSelect()
+            }
+        )
+    }
+
+    private fun updateMultiSelectFabs() {
+        fabManager.updateMultiSelectButtons(multiSelectController.isInMultiSelectMode())
     }
 
     private suspend fun performPaste(files: List<File>, targetDir: File, isMove: Boolean, overwrite: Boolean) {
@@ -358,20 +408,25 @@ class MainActivity : AppCompatActivity() {
         swipeRefreshLayout = SwipeRefreshLayout(this).apply {
             layoutParams = params
             setOnRefreshListener { browserController.refresh() }
-            setProgressBackgroundColorSchemeColor(containerColor)
+            setProgressBackgroundColorSchemeColor(
+                getThemeColor(this@MainActivity, com.google.android.material.R.attr.colorSurface)
+            )
             setColorSchemeColors(
                 getThemeColor(this@MainActivity, materialR.attr.colorPrimary),
                 getThemeColor(this@MainActivity, materialR.attr.colorSecondary),
                 getThemeColor(this@MainActivity, materialR.attr.colorTertiary)
             )
+            setProgressViewEndTarget(true, dpToPx(this@MainActivity, 64))
         }
         swipeRefreshLayout.addView(recyclerView, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
         parent.addView(swipeRefreshLayout)
     }
 
     private fun exitMultiSelect() {
+        lastSwipeSelectPos = null
         multiSelectController.exitMultiSelect()
         updateToolbarTitle()
+        updateMultiSelectFabs()
     }
 
     private fun updateToolbarTitle() {
@@ -410,11 +465,6 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
-    private fun getBookmarkMenuTitle(): String {
-        val isBookmarked = bookmarkManager.isBookmarked(browserController.currentDir.absolutePath)
-        return getString(if (isBookmarked) R.string.remove_current_bookmark else R.string.add_current_bookmark)
-    }
-
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             Menu.FIRST -> browserController.refresh()
@@ -436,6 +486,11 @@ class MainActivity : AppCompatActivity() {
             Menu.FIRST + 6 -> showSortDialog()
         }
         return true
+    }
+
+    private fun getBookmarkMenuTitle(): String {
+        val isBookmarked = bookmarkManager.isBookmarked(browserController.currentDir.absolutePath)
+        return getString(if (isBookmarked) R.string.remove_current_bookmark else R.string.add_current_bookmark)
     }
 
     private fun showSortDialog() {
@@ -466,11 +521,17 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    private fun loadDir(dir: File, showLoading: Boolean = true, scrollToTop: Boolean = true, restorePosition: Int? = null) {
-    exitMultiSelect()
-    browserController.loadDir(dir, showLoading, scrollToTop, restorePosition)
-    bookmarkManager.updateMenu(dir)
-}
+    private fun loadDir(dir: File, showLoading: Boolean = true, scrollToTop: Boolean = false, restorePosition: Int? = null) {
+        exitMultiSelect()
+        browserController.loadDir(dir, showLoading, scrollToTop, restorePosition)
+        bookmarkManager.updateMenu(dir)
+    }
+
+    private fun refreshDir(dir: File, highlightPath: String?) {
+        exitMultiSelect()
+        browserController.loadDir(dir, showLoading = true, scrollToTop = false, restorePosition = null, highlightPath = highlightPath)
+        bookmarkManager.updateMenu(dir)
+    }
 
     fun locateFile(file: File) {
         browserController.locateFile(file)

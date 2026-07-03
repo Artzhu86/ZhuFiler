@@ -35,5 +35,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".TextPreviewActivity"
+            android:exported="false"
+            android:theme="@style/AppTheme" />
+
+        <activity
+            android:name=".ImagePreviewActivity"
+            android:exported="false"
+            android:theme="@style/AppTheme" />
     </application>
 </manifest>

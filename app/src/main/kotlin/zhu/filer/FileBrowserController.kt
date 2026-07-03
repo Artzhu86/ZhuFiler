@@ -60,8 +60,6 @@ class FileBrowserController(
                     activity.supportActionBar?.subtitle = "${activity.getString(R.string.dir_count_label)}: $dirs  ${activity.getString(R.string.file_count_label)}: $files"
                     updateRecentDirs(prefs, dir.absolutePath)
 
-                    // 在 submitList 之前计算高亮位置，让 onBindViewHolder 首次绑定时
-                    // 就走"先淡入显示，再背景渐变"的动画路径。
                     var highlightPos = -1
                     if (highlightPath != null) {
                         val index = currentFiles.indexOfFirst { it.absolutePath == highlightPath }
@@ -79,7 +77,6 @@ class FileBrowserController(
                             val lm = recyclerView.layoutManager as? LinearLayoutManager ?: return@post
                             if (restorePosition != null && restorePosition >= 0 && restorePosition < adapter.itemCount) {
                                 lm.scrollToPositionWithOffset(restorePosition, 0)
-                                // 布局完成后再检查高亮项是否可见，不可见则滚动过去
                                 recyclerView.post {
                                     val first = lm.findFirstVisibleItemPosition()
                                     val last = lm.findLastVisibleItemPosition()

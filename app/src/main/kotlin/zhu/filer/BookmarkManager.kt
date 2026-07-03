@@ -42,10 +42,6 @@ class BookmarkManager(
 
     fun removeBookmark(path: String) = modifyBookmarks { it.remove(path) }
 
-    /**
-     * 移除书签时弹出确认对话框，确认后执行 [onConfirmed]。
-     * 如果该路径未被收藏，则直接添加。
-     */
     fun toggleBookmarkWithConfirm(path: String, onConfirmed: () -> Unit = {}) {
         if (!isBookmarked(path)) {
             addBookmark(path)

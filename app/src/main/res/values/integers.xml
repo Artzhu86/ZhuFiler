@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="click_delay_ms">100</integer>
+    <integer name="fab_show_duration_ms">200</integer>
+    <integer name="fab_show_cancel_delay_ms">50</integer>
+    <integer name="fab_hide_duration_ms">150</integer>
+    <integer name="back_press_exit_timeout_ms">2000</integer>
+</resources>

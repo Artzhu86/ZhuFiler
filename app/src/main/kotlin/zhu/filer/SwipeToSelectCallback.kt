@@ -12,7 +12,7 @@ import androidx.recyclerview.widget.RecyclerView
 
 class SwipeToSelectCallback(
     private val adapter: FileListAdapter,
-    private val onSwipeToSelect: (Int) -> Unit
+    private val onSwipeToSelect: (Int, Boolean) -> Unit
 ) : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
 
     private val vibratedHolders = mutableSetOf<RecyclerView.ViewHolder>()
@@ -75,7 +75,8 @@ class SwipeToSelectCallback(
             pendingSelectViews.remove(itemView)
             vibratedHolders.remove(viewHolder)
             itemView.translationX = 0f
-            onSwipeToSelect(position)
+            val willBeSelected = !adapter.isSelected(position)
+            onSwipeToSelect(position, willBeSelected)
             super.clearView(recyclerView, viewHolder)
             return
         }

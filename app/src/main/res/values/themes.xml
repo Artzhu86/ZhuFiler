@@ -3,6 +3,16 @@
     <style name="AppTheme" parent="Base.AppTheme">
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar">?attr/isLightTheme</item>
+        <item name="listPreferredItemPaddingEnd">20dp</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.App.AlertDialog</item>
+    </style>
+
+    <style name="ThemeOverlay.App.AlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="textAppearanceBodyMedium">@style/TextAppearance.App.DialogBody</item>
+    </style>
+
+    <style name="TextAppearance.App.DialogBody" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textSize">17sp</item>
     </style>
 
     <style name="ToolbarSubtitle" parent="TextAppearance.Material3.TitleSmall">

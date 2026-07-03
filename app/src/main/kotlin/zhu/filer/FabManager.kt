@@ -10,106 +10,167 @@ import java.io.File
 
 class FabManager(private val activity: AppCompatActivity) {
 
-    private lateinit var fabPaste: FloatingActionButton
+    private lateinit var fabAction: FloatingActionButton
     private lateinit var fabCancel: FloatingActionButton
     private var onPaste: ((List<File>, Boolean, Boolean) -> Unit)? = null
     private var onCancel: (() -> Unit)? = null
     private var targetDirProvider: (() -> File)? = null
+    private var onSelectAll: (() -> Unit)? = null
+    private var onDeselect: (() -> Unit)? = null
+    private var currentMode: FabMode = FabMode.NONE
+
+    enum class FabMode { NONE, PASTE, MULTI_SELECT }
 
     fun setup(
-        fabPaste: FloatingActionButton,
+        fabAction: FloatingActionButton,
         fabCancel: FloatingActionButton,
         clipboard: ClipboardManager,
         targetDirProvider: () -> File,
         onPaste: (List<File>, Boolean, Boolean) -> Unit,
         onCancel: () -> Unit
     ) {
-        this.fabPaste = fabPaste
+        this.fabAction = fabAction
         this.fabCancel = fabCancel
         this.targetDirProvider = targetDirProvider
         this.onPaste = onPaste
         this.onCancel = onCancel
 
-        fabPaste.setOnClickListener {
-            val files = clipboard.getFiles()
-            if (files.isEmpty()) return@setOnClickListener
-            val targetDir = targetDirProvider()
-            val isMove = clipboard.isCut()
-            val conflicts = files.filter { File(targetDir, it.name).exists() }
-            if (conflicts.isNotEmpty()) {
-                MaterialAlertDialogBuilder(activity)
-                    .setTitle(R.string.target_exists)
-                    .setMessage(activity.getString(R.string.overwrite_conflict, conflicts.size))
-                    .setPositiveButton(R.string.overwrite) { _, _ ->
-                        onPaste(files, isMove, true)
-                    }
-                    .setNegativeButton(R.string.skip) { _, _ ->
-                        onPaste(files, isMove, false)
-                    }
-                    .show()
-            } else {
-                onPaste(files, isMove, false)
+        fabAction.setOnClickListener {
+            when (currentMode) {
+                FabMode.PASTE -> handlePaste(clipboard)
+                FabMode.MULTI_SELECT -> onSelectAll?.invoke()
+                else -> {}
             }
         }
 
-        fabCancel.setOnClickListener { onCancel() }
+        fabCancel.setOnClickListener {
+            when (currentMode) {
+                FabMode.PASTE -> onCancel()
+                FabMode.MULTI_SELECT -> onDeselect?.invoke()
+                else -> {}
+            }
+        }
+    }
+
+    private fun handlePaste(clipboard: ClipboardManager) {
+        val files = clipboard.getFiles()
+        if (files.isEmpty()) return
+        val targetDir = targetDirProvider!!()
+        val isMove = clipboard.isCut()
+        val conflicts = files.filter { File(targetDir, it.name).exists() }
+        if (conflicts.isNotEmpty()) {
+            MaterialAlertDialogBuilder(activity)
+                .setTitle(R.string.target_exists)
+                .setMessage(activity.getString(R.string.overwrite_conflict, conflicts.size))
+                .setPositiveButton(R.string.overwrite) { _, _ ->
+                    onPaste?.invoke(files, isMove, true)
+                }
+                .setNegativeButton(R.string.skip) { _, _ ->
+                    onPaste?.invoke(files, isMove, false)
+                }
+                .show()
+        } else {
+            onPaste?.invoke(files, isMove, false)
+        }
+    }
+
+    fun setMultiSelectActions(onSelectAll: () -> Unit, onDeselect: () -> Unit) {
+        this.onSelectAll = onSelectAll
+        this.onDeselect = onDeselect
     }
 
     fun updatePasteButtons(clipboard: ClipboardManager) {
         if (clipboard.hasContent()) {
-            val count = clipboard.getFiles().size
-            fabPaste.isVisible = true
+            showMode(FabMode.PASTE, R.drawable.outline_content_paste_24)
+        } else {
+            hideAll()
+        }
+    }
+
+    fun updateMultiSelectButtons(show: Boolean) {
+        if (show) {
+            showMode(FabMode.MULTI_SELECT, R.drawable.outline_select_all_24)
+        } else {
+            hideAll()
+        }
+    }
+
+    private fun showMode(mode: FabMode, iconRes: Int) {
+        if (currentMode == mode && fabAction.isVisible && fabAction.alpha == 1f) return
+        currentMode = mode
+        fabAction.setImageResource(iconRes)
+        fabAction.animate().cancel()
+        fabCancel.animate().cancel()
+        if (!fabAction.isVisible) {
+            fabAction.isVisible = true
             fabCancel.isVisible = true
-            fabPaste.alpha = 0f
+            fabAction.alpha = 0f
             fabCancel.alpha = 0f
-            fabPaste.scaleX = 0.8f
-            fabPaste.scaleY = 0.8f
+            fabAction.scaleX = 0.8f
+            fabAction.scaleY = 0.8f
             fabCancel.scaleX = 0.8f
             fabCancel.scaleY = 0.8f
-            fabPaste.animate()
+            fabAction.animate()
                 .alpha(1f)
                 .scaleX(1f)
                 .scaleY(1f)
-                .setDuration(200)
+                .setDuration(activity.resources.getInteger(R.integer.fab_show_duration_ms).toLong())
                 .setInterpolator(DecelerateInterpolator())
                 .start()
             fabCancel.animate()
                 .alpha(1f)
                 .scaleX(1f)
                 .scaleY(1f)
-                .setDuration(200)
-                .setStartDelay(50)
+                .setDuration(activity.resources.getInteger(R.integer.fab_show_duration_ms).toLong())
+                .setStartDelay(activity.resources.getInteger(R.integer.fab_show_cancel_delay_ms).toLong())
                 .setInterpolator(DecelerateInterpolator())
                 .start()
-            fabPaste.contentDescription = activity.getString(R.string.paste_count, count)
         } else {
-            fabPaste.animate()
+            fabAction.alpha = 1f
+            fabAction.scaleX = 1f
+            fabAction.scaleY = 1f
+            fabCancel.alpha = 1f
+            fabCancel.scaleX = 1f
+            fabCancel.scaleY = 1f
+        }
+    }
+
+    private fun hideAll() {
+        if (currentMode == FabMode.NONE && !fabAction.isVisible) return
+        currentMode = FabMode.NONE
+        if (fabAction.isVisible) {
+            fabAction.animate().cancel()
+            fabCancel.animate().cancel()
+            fabAction.animate()
                 .alpha(0f)
                 .scaleX(0.8f)
                 .scaleY(0.8f)
-                .setDuration(150)
+                .setDuration(activity.resources.getInteger(R.integer.fab_hide_duration_ms).toLong())
                 .setInterpolator(AccelerateInterpolator())
                 .withEndAction {
-                    fabPaste.isVisible = false
-                    fabPaste.alpha = 1f
-                    fabPaste.scaleX = 1f
-                    fabPaste.scaleY = 1f
+                    if (currentMode == FabMode.NONE) {
+                        fabAction.isVisible = false
+                        fabAction.alpha = 1f
+                        fabAction.scaleX = 1f
+                        fabAction.scaleY = 1f
+                    }
                 }
                 .start()
             fabCancel.animate()
                 .alpha(0f)
                 .scaleX(0.8f)
                 .scaleY(0.8f)
-                .setDuration(150)
+                .setDuration(activity.resources.getInteger(R.integer.fab_hide_duration_ms).toLong())
                 .setInterpolator(AccelerateInterpolator())
                 .withEndAction {
-                    fabCancel.isVisible = false
-                    fabCancel.alpha = 1f
-                    fabCancel.scaleX = 1f
-                    fabCancel.scaleY = 1f
+                    if (currentMode == FabMode.NONE) {
+                        fabCancel.isVisible = false
+                        fabCancel.alpha = 1f
+                        fabCancel.scaleX = 1f
+                        fabCancel.scaleY = 1f
+                    }
                 }
                 .start()
-            fabPaste.contentDescription = activity.getString(R.string.paste)
         }
     }
 }

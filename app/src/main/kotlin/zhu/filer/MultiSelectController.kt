@@ -18,7 +18,8 @@ class MultiSelectController(
     private val loadDir: suspend (File) -> Unit,
     private val progressBar: android.widget.ProgressBar,
     private val clipboardManager: ClipboardManager,
-    private val onClipboardChanged: () -> Unit
+    private val onClipboardChanged: () -> Unit,
+    private val onExitMultiSelect: () -> Unit = {}
 ) {
 
     private var isMultiSelect = false
@@ -28,15 +29,14 @@ class MultiSelectController(
     fun enterMultiSelect() {
         if (!isMultiSelect) {
             isMultiSelect = true
-            adapter.setMultiSelectMode(true)
         }
     }
 
     fun exitMultiSelect() {
         if (isMultiSelect) {
             isMultiSelect = false
-            adapter.setMultiSelectMode(false)
             adapter.clearSelection()
+            onExitMultiSelect()
         }
     }
 
@@ -108,8 +108,8 @@ class MultiSelectController(
     private fun batchCopyOrMove(files: List<File>, isMove: Boolean) {
         if (files.isEmpty()) return
         clipboardManager.set(files, isMove)
-        onClipboardChanged()
         exitMultiSelect()
+        onClipboardChanged()
         toast(activity, if (isMove) activity.getString(R.string.cut_files, files.size) else activity.getString(R.string.copied, files.size))
     }
 

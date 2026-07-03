@@ -3,18 +3,13 @@ package zhu.filer
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.text.format.Formatter
 import android.util.TypedValue
-import android.view.Gravity
-import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import android.webkit.MimeTypeMap
-import android.widget.ImageView
-import android.widget.ScrollView
 import android.widget.TableLayout
 import android.widget.TableRow
 import android.widget.TextView
@@ -22,13 +17,9 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
-import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -50,19 +41,32 @@ fun getSortComparator(mode: SortMode): Comparator<File> {
         SortMode.DATE -> byDir.thenByDescending { it.lastModified() }
     }
 }
-val CLICK_DELAY_MS = 100L
-val DATE_FORMAT = SimpleDateFormat("yy-MM-dd HH:mm", Locale.getDefault())
-val DETAILS_DATE_FORMAT = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-const val TEXT_PREVIEW_MAX_BYTES = 1024 * 1024
+
 private const val PATH_DISPLAY_MAX_LEN = 20
 private const val RECENT_SEPARATOR = "|"
 private const val RECENT_MAX_COUNT = 10
 
+const val TITLE_MAX_LEN = 15
+
+fun middleEllipsize(text: String, maxLen: Int = TITLE_MAX_LEN): String {
+    if (text.length <= maxLen) return text
+    if (maxLen <= 1) return "…"
+    val keep = maxLen - 1
+    val head = keep / 2
+    val tail = keep - head
+    return text.take(head) + "…" + text.takeLast(tail)
+}
+
 fun createFileItem(context: Context, file: File): FileItem {
-    val timeStr = DATE_FORMAT.format(Date(file.lastModified()))
-    val subtitle = if (file.isDirectory) timeStr else "$timeStr  ${Formatter.formatFileSize(context, file.length())}"
-    val iconRes = if (file.isDirectory) R.drawable.outline_folder_24 else R.drawable.outline_insert_drive_file_24
-    return FileItem(file, file.name, iconRes, subtitle)
+    val timeStr = SimpleDateFormat(context.getString(R.string.date_format), Locale.getDefault()).format(Date(file.lastModified()))
+    val sizeStr = Formatter.formatFileSize(context, file.length())
+    val iconRes = when {
+        file.isDirectory -> R.drawable.outline_folder_24
+        file.extension.lowercase(Locale.ROOT) in textExts -> R.drawable.outline_description_24
+        file.extension.lowercase(Locale.ROOT) in imageExts -> R.drawable.outline_image_24
+        else -> R.drawable.outline_insert_drive_file_24
+    }
+    return FileItem(file, file.name, iconRes, "$timeStr  $sizeStr")
 }
 
 fun toast(context: Context, msg: String, duration: Int = Toast.LENGTH_SHORT) {
@@ -161,7 +165,6 @@ fun openFileWithSystem(context: Context, file: File) {
 
 fun previewFile(activity: AppCompatActivity, file: File, forceChoose: Boolean = false) {
     if (!file.canRead()) { toast(activity, activity.getString(R.string.cannot_read)); return }
-    if (file.length() > 5 * 1024 * 1024) { toast(activity, activity.getString(R.string.file_too_large), Toast.LENGTH_LONG); return }
     val ext = file.extension.lowercase(Locale.ROOT)
     if (forceChoose || (ext !in textExts && ext !in imageExts)) {
         val options = listOf(
@@ -174,8 +177,8 @@ fun previewFile(activity: AppCompatActivity, file: File, forceChoose: Boolean = 
             .setItems(options.toTypedArray()) { _, which ->
                 when (which) {
                     0 -> openFileWithSystem(activity, file)
-                    1 -> showTextPreview(activity, file)
-                    2 -> showImagePreview(activity, file)
+                    1 -> launchTextPreview(activity, file)
+                    2 -> launchImagePreview(activity, file)
                 }
             }
             .setNegativeButton(R.string.cancel, null)
@@ -185,79 +188,23 @@ fun previewFile(activity: AppCompatActivity, file: File, forceChoose: Boolean = 
         return
     }
     when {
-        ext in imageExts -> showImagePreview(activity, file)
-        ext in textExts -> showTextPreview(activity, file)
+        ext in imageExts -> launchImagePreview(activity, file)
+        ext in textExts -> launchTextPreview(activity, file)
     }
 }
 
-private fun showPreviewDialog(activity: AppCompatActivity, title: String, view: View) {
-    MaterialAlertDialogBuilder(activity)
-        .setTitle(title)
-        .setView(view)
-        .setPositiveButton(R.string.close, null)
-        .show()
+private fun launchTextPreview(activity: AppCompatActivity, file: File) {
+    val intent = android.content.Intent(activity, TextPreviewActivity::class.java).apply {
+        putExtra(TextPreviewActivity.EXTRA_FILE_PATH, file.absolutePath)
+    }
+    activity.startActivity(intent)
 }
 
-fun showTextPreview(activity: AppCompatActivity, file: File) {
-    activity.lifecycleScope.launch {
-        val content = withContext(Dispatchers.IO) {
-            runCatching {
-                file.bufferedReader().use { reader ->
-                    val sb = StringBuilder()
-                    var line: String?
-                    var size = 0
-                    while (reader.readLine().also { line = it } != null) {
-                        sb.append(line).append('\n')
-                        size += (line?.length ?: 0) + 1
-                        if (size > TEXT_PREVIEW_MAX_BYTES) {
-                            sb.append("\n... (${activity.getString(R.string.file_too_large_preview)})")
-                            break
-                        }
-                    }
-                    sb.toString()
-                }
-            }.getOrDefault(activity.getString(R.string.read_failed))
-        }
-        val scrollView = ScrollView(activity).apply {
-            isFillViewport = true
-            if (content.isEmpty()) {
-                val tv = TextView(context).apply {
-                    text = activity.getString(R.string.file_empty)
-                    textSize = 20f
-                    setTextIsSelectable(false)
-                    gravity = Gravity.CENTER
-                    setPadding(dpToPx(context, 20), dpToPx(context, 20), dpToPx(context, 20), 0)
-                    layoutParams = ViewGroup.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT
-                    )
-                }
-                addView(tv)
-            } else {
-                val tv = TextView(context).apply {
-                    text = content
-                    setTextIsSelectable(true)
-                    setPadding(dpToPx(context, 16), dpToPx(context, 16), dpToPx(context, 16), dpToPx(context, 16))
-                    textSize = 14f
-                }
-                addView(tv)
-            }
-        }
-        showPreviewDialog(activity, file.name, scrollView)
+private fun launchImagePreview(activity: AppCompatActivity, file: File) {
+    val intent = android.content.Intent(activity, ImagePreviewActivity::class.java).apply {
+        putExtra(ImagePreviewActivity.EXTRA_FILE_PATH, file.absolutePath)
     }
-}
-
-fun showImagePreview(activity: AppCompatActivity, file: File) {
-    activity.lifecycleScope.launch {
-        val bmp = withContext(Dispatchers.IO) { runCatching { BitmapFactory.decodeFile(file.absolutePath) }.getOrNull() }
-        if (bmp == null) { toast(activity, activity.getString(R.string.image_load_failed)); return@launch }
-        val iv = ImageView(activity).apply {
-            setImageBitmap(bmp)
-            scaleType = ImageView.ScaleType.FIT_CENTER
-            setPadding(dpToPx(activity, 16), dpToPx(activity, 16), dpToPx(activity, 16), dpToPx(activity, 16))
-        }
-        showPreviewDialog(activity, file.name, iv)
-    }
+    activity.startActivity(intent)
 }
 
 fun showDetails(activity: AppCompatActivity, file: File) {
@@ -266,7 +213,7 @@ fun showDetails(activity: AppCompatActivity, file: File) {
     rows.add(activity.getString(R.string.path_label) to file.absolutePath)
     rows.add(activity.getString(R.string.type_label) to if (file.isDirectory) activity.getString(R.string.directory) else activity.getString(R.string.file))
     rows.add(activity.getString(R.string.size_label) to Formatter.formatFileSize(activity, file.length()))
-    rows.add(activity.getString(R.string.modified_label) to DETAILS_DATE_FORMAT.format(Date(file.lastModified())))
+    rows.add(activity.getString(R.string.modified_label) to SimpleDateFormat(activity.getString(R.string.date_format_details), Locale.getDefault()).format(Date(file.lastModified())))
     if (file.isDirectory) {
         val (dirs, files) = getDirStats(file)
         rows.add(activity.getString(R.string.dir_count_label) to dirs.toString())

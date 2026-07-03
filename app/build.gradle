@@ -5,19 +5,25 @@ plugins {
 
 android {
     namespace 'zhu.filer'
-    compileSdk 35
+    compileSdk 36
 
     defaultConfig {
         applicationId 'zhu.filer'
         minSdk 25
-        targetSdk 35
-        versionCode 9
-        versionName "1.8"
+        targetSdk 36
+        versionCode 10
+        versionName "1.9"
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
 
     buildFeatures {
         viewBinding true
+    }
+
+    packaging {
+        resources {
+            excludes += 'tables/**'
+        }
     }
 
     signingConfigs {
@@ -43,6 +49,7 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
+        coreLibraryDesugaringEnabled true
     }
     kotlin {
         compilerOptions {
@@ -58,4 +65,12 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.8.7'
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+
+    implementation 'com.github.bumptech.glide:glide:4.16.0'
+
+    implementation platform('io.github.rosemoe:editor-bom:0.23.7')
+    implementation 'io.github.rosemoe:editor'
+    implementation 'io.github.rosemoe:language-textmate'
+
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
 }

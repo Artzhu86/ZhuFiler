@@ -61,7 +61,7 @@ fun showNavigateDialog(activity: AppCompatActivity, currentDir: File, loadDir: s
                         recentDialog.dismiss()
                         Handler(Looper.getMainLooper()).postDelayed({
                             activity.lifecycleScope.launch { loadDir(file) }
-                        }, CLICK_DELAY_MS)
+                        }, activity.resources.getInteger(R.integer.click_delay_ms).toLong())
                     },
                     onItemLongClick = { _, _ -> false }
                 ).apply { submitList(items) }
@@ -79,7 +79,7 @@ fun showNavigateDialog(activity: AppCompatActivity, currentDir: File, loadDir: s
     editText.post { editText.selectAll() }
 }
 
-fun showCreate(activity: AppCompatActivity, currentDir: File, loadDir: suspend (File) -> Unit) {
+fun showCreate(activity: AppCompatActivity, currentDir: File, loadDir: suspend (File, String?) -> Unit) {
     val rootLayout = LinearLayout(activity).apply {
         orientation = LinearLayout.VERTICAL
         setPadding(dpToPx(activity, 16), dpToPx(activity, 16), dpToPx(activity, 16), 0)
@@ -97,7 +97,7 @@ fun showCreate(activity: AppCompatActivity, currentDir: File, loadDir: suspend (
                 activity.lifecycleScope.launch {
                     val ok = withContext(Dispatchers.IO) { f.createNewFile() }
                     if (!ok) toast(activity, activity.getString(R.string.create_failed))
-                    if (ok) loadDir(currentDir)
+                    if (ok) loadDir(currentDir, f.absolutePath)
                 }
             } else toast(activity, activity.getString(R.string.invalid_characters))
         }
@@ -108,7 +108,7 @@ fun showCreate(activity: AppCompatActivity, currentDir: File, loadDir: suspend (
                 activity.lifecycleScope.launch {
                     val ok = withContext(Dispatchers.IO) { d.mkdir() }
                     if (!ok) toast(activity, activity.getString(R.string.create_failed))
-                    if (ok) loadDir(currentDir)
+                    if (ok) loadDir(currentDir, d.absolutePath)
                 }
             } else toast(activity, activity.getString(R.string.invalid_characters))
         }

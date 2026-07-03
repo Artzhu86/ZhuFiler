@@ -27,13 +27,11 @@
     <string name="delete_message">Delete %s?</string>
     <string name="delete_failed">Delete failed</string>
     <string name="cannot_read">Cannot read</string>
-    <string name="file_too_large">File > 5MB</string>
     <string name="open">External app</string>
     <string name="text">Text</string>
     <string name="image">Image</string>
     <string name="share_failed">Share failed: %s</string>
     <string name="open_failed">Cannot open: %s</string>
-    <string name="file_too_large_preview">File too large, showing first 1MB</string>
     <string name="read_failed">Read failed</string>
     <string name="file_empty">File is empty</string>
     <string name="close">Close</string>
@@ -85,10 +83,10 @@
     <string name="remove_bookmark">Remove bookmark</string>
     <string name="remove">Remove</string>
     <string name="move_success">Successfully moved %d files</string>
-    <string name="move_success_skip">Successfully moved %d files, skipped %d</string>
+    <string name="move_success_skip">Successfully moved %1$d files, skipped %2$d</string>
     <string name="copy_success">Successfully copied %d files</string>
-    <string name="copy_success_skip">Successfully copied %d files, skipped %d</string>
-    <string name="paste_result_partial">%d succeeded, %d failed</string>
+    <string name="copy_success_skip">Successfully copied %1$d files, skipped %2$d</string>
+    <string name="paste_result_partial">%1$d succeeded, %2$d failed</string>
     <string name="back_press_exit">Press back again to exit</string>
     <string name="copied_to_clipboard">Copied to clipboard</string>
 </resources>

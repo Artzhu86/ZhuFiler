@@ -32,7 +32,7 @@ class BackPressHandler(private val activity: AppCompatActivity) {
                 } else {
                     backPressedOnce = true
                     toast(activity, activity.getString(R.string.back_press_exit))
-                    Handler(Looper.getMainLooper()).postDelayed({ backPressedOnce = false }, 2000)
+                    Handler(Looper.getMainLooper()).postDelayed({ backPressedOnce = false }, activity.resources.getInteger(R.integer.back_press_exit_timeout_ms).toLong())
                 }
             }
         })
