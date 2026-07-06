@@ -1,0 +1,2103 @@
+/* ============================================================
+   ZhuFiler 网站全局样式
+   基于 mdui 2 设计令牌,遵循 Material Design 3 最佳实践
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* ---------- 设计令牌(站点级覆盖) ---------- */
+:root {
+  /* 字体 */
+  --zf-font-sans: 'Noto Sans SC', system-ui, -apple-system, sans-serif;
+  --zf-font-mono: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+
+  /* 复用圆角值,避免到处写 100px */
+  --zf-radius-pill: 100px;
+  --zf-radius-card: 28px;
+  --zf-radius-card-sm: 20px;
+
+  /* 品牌渐变 */
+  --zf-gradient-brand: linear-gradient(135deg, var(--mdui-color-primary), var(--mdui-color-tertiary));
+  --zf-gradient-brand-soft: linear-gradient(135deg, var(--mdui-color-primary-container), var(--mdui-color-tertiary-container));
+
+  /* 阴影 */
+  --zf-shadow-lift: 0 8px 24px rgba(0, 0, 0, 0.10);
+  --zf-shadow-float: 0 16px 40px rgba(0, 0, 0, 0.14);
+
+  /* 动效曲线(M3 emphasis) */
+  --zf-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --zf-ease-emphasized: cubic-bezier(0.3, 0, 0, 1);
+  --zf-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ---------- 基础重置 ---------- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  height: 100%;
+}
+
+body {
+  font-family: var(--zf-font-sans);
+  background: var(--mdui-color-surface);
+  color: var(--mdui-color-on-surface);
+  transition: background-color 0.4s var(--zf-ease-standard), color 0.4s var(--zf-ease-standard);
+  height: 100%;
+  margin: 0;
+}
+
+#app {
+  height: 100%;
+}
+
+/* 确保 TopAppBar 内容水平排列且垂直居中(官方 :host 可能未设 flex) */
+mdui-top-app-bar {
+  display: flex;
+  align-items: center;
+}
+
+/* 滚动条美化 */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--mdui-color-surface-container-low);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--mdui-color-outline-variant);
+  border-radius: var(--zf-radius-pill);
+  border: 2px solid var(--mdui-color-surface-container-low);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--mdui-color-outline);
+}
+
+/* 文字选中 */
+::selection {
+  background: var(--mdui-color-primary-container);
+  color: var(--mdui-color-on-primary-container);
+}
+
+a {
+  color: var(--mdui-color-primary);
+  text-decoration: none;
+  transition: color 0.2s var(--zf-ease-standard);
+}
+a:hover {
+  text-decoration: underline;
+}
+
+/* ---------- 布局工具类 ---------- */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+.container-narrow {
+  max-width: 840px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+.container-wide {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.section {
+  padding: 72px 0;
+}
+.section-tight {
+  padding: 48px 0;
+}
+
+/* ---------- 页头 ---------- */
+.page-header {
+  text-align: center;
+  padding: 72px 0 40px;
+  position: relative;
+}
+.page-header::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 3px;
+  border-radius: var(--zf-radius-pill);
+  background: var(--zf-gradient-brand);
+  opacity: 0.7;
+}
+.page-header-icon {
+  font-size: 56px;
+  color: var(--mdui-color-primary);
+  margin-bottom: 16px;
+  display: inline-block;
+}
+.page-title {
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 700;
+  margin-bottom: 12px;
+  letter-spacing: -0.02em;
+}
+.page-desc {
+  font-size: clamp(15px, 2vw, 18px);
+  color: var(--mdui-color-on-surface-variant);
+  max-width: 620px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* ---------- 区块标题 ---------- */
+.section-title {
+  font-size: clamp(24px, 3vw, 32px);
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 12px;
+  color: var(--mdui-color-on-surface);
+  letter-spacing: -0.02em;
+}
+.section-subtitle {
+  font-size: 16px;
+  text-align: center;
+  color: var(--mdui-color-on-surface-variant);
+  margin-bottom: 48px;
+  max-width: 620px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+/* 区块小标题(带图标) */
+.block-title {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 48px 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  letter-spacing: -0.01em;
+}
+.block-title mdui-icon {
+  color: var(--mdui-color-primary);
+}
+
+/* ---------- 网格 ---------- */
+.grid {
+  display: grid;
+  gap: 24px;
+}
+.grid-auto {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+.grid-auto-sm {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+.grid-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+.grid-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+.grid-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* ---------- 卡片层次系统(使用 mdui 变体 + 增强) ---------- */
+/* 默认卡片:使用 mdui-card 的 variant 属性,这里只做内容增强 */
+.zf-card {
+  width: 100%;
+  padding: 32px;
+  border-radius: var(--zf-radius-card);
+  height: 100%;
+  transition: transform 0.35s var(--zf-ease-emphasized), box-shadow 0.35s var(--zf-ease-standard);
+  position: relative;
+  overflow: hidden;
+}
+.zf-card-sm {
+  padding: 24px;
+  border-radius: var(--zf-radius-card-sm);
+}
+
+/* 可点击卡片的悬浮效果 */
+mdui-card[clickable]:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--zf-shadow-lift);
+}
+
+/* 特性卡片:顶部渐变线 */
+.feature-card {
+  padding: 32px;
+  border-radius: var(--zf-radius-card);
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.35s var(--zf-ease-emphasized), box-shadow 0.35s var(--zf-ease-standard);
+}
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--zf-gradient-brand);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s var(--zf-ease-emphasized);
+}
+.feature-card::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, var(--mdui-color-primary-container) 0%, transparent 50%);
+  opacity: 0;
+  transition: opacity 0.4s var(--zf-ease-standard);
+  pointer-events: none;
+}
+.feature-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--zf-shadow-float);
+}
+.feature-card:hover::before {
+  transform: scaleX(1);
+}
+.feature-card:hover::after {
+  opacity: 0.4;
+}
+.feature-card-icon {
+  font-size: 40px !important;
+  color: var(--mdui-color-primary);
+  margin-bottom: 16px;
+  display: block;
+  transition: transform 0.4s var(--zf-ease-spring);
+}
+.feature-card:hover .feature-card-icon {
+  transform: scale(1.15) rotate(-6deg);
+}
+.feature-card h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  letter-spacing: -0.01em;
+}
+.feature-card p {
+  color: var(--mdui-color-on-surface-variant);
+  line-height: 1.7;
+}
+
+/* 统计卡片 */
+.stat-card {
+  padding: 32px;
+  border-radius: var(--zf-radius-card);
+  text-align: center;
+  height: 100%;
+  transition: transform 0.35s var(--zf-ease-emphasized), box-shadow 0.35s var(--zf-ease-standard);
+}
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--zf-shadow-lift);
+}
+.stat-card mdui-icon {
+  font-size: 32px !important;
+  color: var(--mdui-color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  line-height: 1;
+  margin: 0 auto 12px;
+}
+.stat-value {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--mdui-color-primary);
+  margin-bottom: 8px;
+  letter-spacing: -0.02em;
+}
+.stat-label {
+  font-size: 14px;
+  color: var(--mdui-color-on-surface-variant);
+}
+
+/* 小特性卡片(更多功能) */
+.mini-card {
+  padding: 24px;
+  border-radius: var(--zf-radius-card-sm);
+  text-align: center;
+  height: 100%;
+  transition: transform 0.3s var(--zf-ease-emphasized), box-shadow 0.3s var(--zf-ease-standard);
+}
+.mini-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--zf-shadow-lift);
+}
+.mini-card mdui-icon {
+  font-size: 32px !important;
+  color: var(--mdui-color-primary);
+  margin: 0 auto 8px;       /* 居中:block 元素不受 text-align 控制,需要 margin auto */
+  display: flex;            /* 改用 flex 让字体字符在容器内居中 */
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  line-height: 1;
+}
+.mini-card-title {
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+.mini-card-desc {
+  font-size: 13px;
+  color: var(--mdui-color-on-surface-variant);
+}
+
+/* ---------- 英雄区 ---------- */
+.hero {
+  min-height: 78vh;
+  display: flex;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  padding: 48px 0 64px;
+}
+/* 背景装饰:多层光晕 */
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.hero-bg::before,
+.hero-bg::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+}
+.hero-bg::before {
+  width: 520px;
+  height: 520px;
+  right: -120px;
+  top: 10%;
+  background: radial-gradient(circle, var(--mdui-color-primary-container) 0%, transparent 70%);
+  opacity: 0.6;
+  animation: float-slow 12s ease-in-out infinite;
+}
+.hero-bg::after {
+  width: 380px;
+  height: 380px;
+  left: -100px;
+  bottom: 0;
+  background: radial-gradient(circle, var(--mdui-color-tertiary-container) 0%, transparent 70%);
+  opacity: 0.5;
+  animation: float-slow 15s ease-in-out infinite reverse;
+}
+@keyframes float-slow {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(20px, -30px) scale(1.08); }
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  max-width: 600px;
+}
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--mdui-color-on-surface-variant);
+  margin-bottom: 20px;
+  padding: 6px 14px;
+  border-radius: var(--zf-radius-pill);
+  background: var(--mdui-color-surface-container);
+  border: 1px solid var(--mdui-color-outline-variant);
+}
+.hero-eyebrow mdui-icon {
+  font-size: 16px !important;
+  color: var(--mdui-color-primary);
+}
+.hero-title {
+  font-size: clamp(40px, 6vw, 64px);
+  font-weight: 700;
+  line-height: 1.05;
+  margin-bottom: 12px;
+  background: var(--zf-gradient-brand);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.03em;
+}
+.hero-subtitle {
+  font-size: clamp(18px, 2.5vw, 24px);
+  font-weight: 400;
+  color: var(--mdui-color-on-surface-variant);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+.hero-highlight {
+  color: var(--mdui-color-primary);
+  font-weight: 600;
+}
+.hero-desc {
+  font-size: 16px;
+  color: var(--mdui-color-on-surface-variant);
+  margin-bottom: 32px;
+  line-height: 1.8;
+}
+.hero-actions {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.hero-actions mdui-button {
+  --mdui-button-radius: var(--zf-radius-pill);
+}
+
+/* 英雄区统计数据 */
+.hero-stats {
+  display: flex;
+  gap: 40px;
+  margin-top: 48px;
+  padding-top: 32px;
+  border-top: 1px solid var(--mdui-color-outline-variant);
+}
+.hero-stat-num {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--mdui-color-on-surface);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+.hero-stat-label {
+  font-size: 13px;
+  color: var(--mdui-color-on-surface-variant);
+  margin-top: 2px;
+}
+
+/* 英雄区代码窗口 */
+.hero-code {
+  position: relative;
+  z-index: 2;
+}
+.code-window {
+  overflow: hidden;
+  border-radius: var(--zf-radius-card-sm);
+  box-shadow: var(--zf-shadow-float);
+  border: 1px solid var(--mdui-color-outline-variant);
+}
+.code-window-bar {
+  background: var(--mdui-color-surface-container-high);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--mdui-color-outline-variant);
+}
+.code-window-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+.code-window-title {
+  margin-left: 8px;
+  font-size: 13px;
+  color: var(--mdui-color-on-surface-variant);
+  font-family: var(--zf-font-mono);
+}
+.code-window-body {
+  padding: 24px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.75;
+  font-family: var(--zf-font-mono);
+  overflow-x: auto;
+  background: var(--mdui-color-surface-container-low);
+}
+.code-window-body code {
+  font-family: inherit;
+}
+
+/* ---------- 代码块通用 ---------- */
+.code-block {
+  background: var(--mdui-color-surface-container-high);
+  border-radius: 16px;
+  padding: 20px 24px;
+  font-family: var(--zf-font-mono);
+  font-size: 13px;
+  line-height: 1.75;
+  overflow-x: auto;
+  border: 1px solid var(--mdui-color-outline-variant);
+}
+.code-block pre {
+  margin: 0;
+  font-family: inherit;
+}
+.code-block code {
+  font-family: inherit;
+  color: var(--mdui-color-on-surface);
+}
+/* 代码块容器:relative 让复制按钮绝对定位 */
+.code-block-wrap {
+  position: relative;
+}
+.code-block-wrap .code-copy-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  opacity: 0.5;
+  transition: opacity 0.2s var(--zf-ease-standard);
+}
+.code-block-wrap:hover .code-copy-btn,
+.code-copy-btn:focus-visible {
+  opacity: 1;
+}
+.code-block-wrap .code-copy-btn mdui-icon {
+  color: var(--mdui-color-on-surface-variant);
+}
+
+/* ---------- 命令行逐条复制(download.ts) ---------- */
+.zf-cmd-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.zf-cmd-row {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  background: var(--mdui-color-surface-container);
+  border-radius: 16px;
+  border: 1px solid var(--mdui-color-outline-variant);
+  padding: 16px 16px 16px 16px;
+  transition: border-color 0.2s var(--zf-ease-standard),
+              box-shadow 0.2s var(--zf-ease-standard);
+}
+.zf-cmd-row:hover {
+  border-color: var(--mdui-color-primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+.zf-cmd-row .code-copy-btn {
+  position: static;
+  align-self: center;
+  margin-right: 8px;
+  opacity: 0.4;
+  flex-shrink: 0;
+  transition: opacity 0.2s var(--zf-ease-standard);
+}
+.zf-cmd-row:hover .code-copy-btn,
+.zf-cmd-row .code-copy-btn:focus-visible {
+  opacity: 1;
+}
+.zf-cmd-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.zf-cmd-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--mdui-color-primary);
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+.zf-cmd-code {
+  margin: 0;
+  font-family: var(--zf-font-mono);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--mdui-color-on-surface);
+  overflow-x: auto;
+  white-space: pre;
+  user-select: all;
+  cursor: text;
+}
+.zf-cmd-code code {
+  font-family: inherit;
+}
+
+/* 代码语法高亮(主题感知) */
+.tk-key { color: var(--mdui-color-tertiary); }       /* 关键字 */
+.tk-fn  { color: var(--mdui-color-primary); }        /* 函数名 */
+.tk-cls { color: var(--mdui-color-secondary); }      /* 类名 */
+.tk-str { color: #6b9f4e; }                          /* 字符串 */
+.tk-num { color: var(--mdui-color-tertiary); }       /* 数字 */
+.tk-cmt { color: var(--mdui-color-outline); font-style: italic; } /* 注释 */
+html.mdui-theme-dark .tk-str { color: #a5d6a7; }
+
+/* ---------- CTA 区块 ---------- */
+.cta-section {
+  text-align: center;
+  padding: 64px 32px;
+  background: var(--zf-gradient-brand-soft);
+  border-radius: 40px;
+  margin: 64px 0;
+  position: relative;
+  overflow: hidden;
+}
+.cta-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 30% 20%, var(--mdui-color-primary) 0%, transparent 40%);
+  opacity: 0.08;
+  pointer-events: none;
+}
+.cta-section h2 {
+  font-size: clamp(24px, 3vw, 32px);
+  font-weight: 700;
+  margin-bottom: 12px;
+  position: relative;
+  letter-spacing: -0.02em;
+}
+.cta-section p {
+  font-size: 16px;
+  color: var(--mdui-color-on-surface-variant);
+  margin-bottom: 32px;
+  position: relative;
+}
+.cta-section .cta-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+  position: relative;
+}
+.cta-section mdui-button {
+  --mdui-button-radius: var(--zf-radius-pill);
+}
+
+/* ---------- 版本徽标 ---------- */
+.version-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  background: var(--mdui-color-primary);
+  color: var(--mdui-color-on-primary);
+  border-radius: var(--zf-radius-pill);
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--mdui-color-primary) 40%, transparent);
+}
+
+/* ---------- 时间线 ---------- */
+.timeline-item {
+  position: relative;
+  padding: 28px 32px;
+  background: var(--mdui-color-surface-container);
+  border-radius: var(--zf-radius-card);
+  margin-bottom: 20px;
+  transition: transform 0.3s var(--zf-ease-emphasized), box-shadow 0.3s var(--zf-ease-standard);
+}
+.timeline-item:hover {
+  transform: translateX(4px);
+  box-shadow: var(--zf-shadow-lift);
+}
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--zf-gradient-brand);
+  border-radius: 4px 0 0 4px;
+}
+.timeline-date {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--mdui-color-primary);
+  margin-bottom: 8px;
+}
+.timeline-item h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+/* ---------- 表格(使用 mdui-table 增强) ---------- */
+.zf-table-wrap {
+  margin: 24px 0;
+  border-radius: var(--zf-radius-card-sm);
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+.zf-table-wrap table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--mdui-color-surface-container);
+}
+.zf-table-wrap th {
+  background: var(--mdui-color-primary);
+  color: var(--mdui-color-on-primary);
+  padding: 14px 24px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 14px;
+}
+.zf-table-wrap td {
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--mdui-color-outline-variant);
+  font-size: 14px;
+}
+.zf-table-wrap tr:last-child td {
+  border-bottom: none;
+}
+.zf-table-wrap tbody tr {
+  transition: background-color 0.2s var(--zf-ease-standard);
+}
+.zf-table-wrap tbody tr:hover {
+  background: var(--mdui-color-surface-container-high);
+}
+.zf-table-wrap td mdui-icon,
+.zf-table-wrap th mdui-icon {
+  vertical-align: middle;
+  font-size: 18px;
+}
+
+/* ---------- 列表项特性 ---------- */
+.zf-list-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  line-height: 1.7;
+}
+.zf-list-item mdui-icon {
+  font-size: 18px;
+  color: var(--mdui-color-primary);
+  flex-shrink: 0;
+}
+.zf-list-check mdui-icon {
+  color: var(--mdui-color-primary);
+}
+
+/* ---------- 贡献者卡片 ---------- */
+.contributor-card {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px;
+  background: var(--mdui-color-surface-container);
+  border-radius: var(--zf-radius-card-sm);
+  margin: 8px;
+  transition: transform 0.3s var(--zf-ease-emphasized), box-shadow 0.3s var(--zf-ease-standard);
+}
+.contributor-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--zf-shadow-lift);
+}
+
+/* ---------- 步骤指示器 ---------- */
+.step-num {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--mdui-color-primary);
+  color: var(--mdui-color-on-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+/* ---------- 回到顶部 FAB ---------- */
+#back-to-top {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 100;
+  opacity: 0;
+  transform: translateY(16px) scale(0.8);
+  pointer-events: none;
+  transition: opacity 0.3s var(--zf-ease-standard), transform 0.3s var(--zf-ease-spring);
+}
+#back-to-top.visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+/* FAB 内图标居中(兜底规则,防止 slot icon 未被全局规则覆盖) */
+#back-to-top mdui-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1em;
+  height: 1em;
+  line-height: 1;
+  vertical-align: middle;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+/* ---------- 页脚 ---------- */
+.zf-footer {
+  background: var(--mdui-color-surface-container);
+  padding: 56px 24px 24px;
+  margin-top: 80px;
+  border-top: 1px solid var(--mdui-color-outline-variant);
+}
+.zf-footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.zf-footer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 40px;
+  margin-bottom: 32px;
+}
+.zf-footer-brand {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: var(--mdui-color-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.zf-footer-tagline {
+  font-size: 14px;
+  color: var(--mdui-color-on-surface-variant);
+  line-height: 1.8;
+}
+.zf-footer-col-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.zf-footer-links {
+  font-size: 14px;
+  color: var(--mdui-color-on-surface-variant);
+  line-height: 2.2;
+}
+.zf-footer-links a {
+  color: inherit;
+  text-decoration: none;
+  display: block;
+  transition: color 0.2s var(--zf-ease-standard), padding-left 0.2s var(--zf-ease-standard);
+}
+.zf-footer-links a:hover {
+  color: var(--mdui-color-primary);
+  padding-left: 4px;
+  text-decoration: none;
+}
+.zf-footer-bottom {
+  text-align: center;
+  padding: 24px 0 8px;
+  font-size: 13px;
+  color: var(--mdui-color-on-surface-variant);
+}
+
+/* ---------- 动效系统 ---------- */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-28px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(28px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.05); }
+}
+
+/* 初始状态:隐藏,等待进入视口触发 */
+.animate-in {
+  opacity: 0;
+}
+.animate-in.in-view {
+  animation: fadeInUp 0.7s var(--zf-ease-emphasized) forwards;
+}
+.animate-fade.in-view {
+  animation: fadeIn 0.6s var(--zf-ease-standard) forwards;
+}
+.animate-scale.in-view {
+  animation: scaleIn 0.6s var(--zf-ease-spring) forwards;
+}
+.animate-left.in-view {
+  animation: slideInLeft 0.7s var(--zf-ease-emphasized) forwards;
+}
+.animate-right.in-view {
+  animation: slideInRight 0.7s var(--zf-ease-emphasized) forwards;
+}
+
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
+.delay-4 { animation-delay: 0.4s; }
+.delay-5 { animation-delay: 0.5s; }
+.delay-6 { animation-delay: 0.6s; }
+
+/* 无障碍:尊重用户减少动效偏好 */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .animate-in { opacity: 1; }
+}
+
+/* ---------- mdui 组件微调 ---------- */
+/* 导航抽屉 */
+.zf-drawer-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 24px;
+}
+.zf-drawer-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  font-size: 12px;
+  color: var(--mdui-color-on-surface-variant);
+}
+.zf-drawer-footer mdui-chip {
+  height: 24px;
+  font-size: 11px;
+}
+/* 导航抽屉分组标题:增强层次感 */
+#nav-drawer mdui-list-subheader {
+  padding: 12px 24px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--mdui-color-primary);
+}
+
+/* 折叠面板:与 mdui-list 配合使用(官方推荐结构) */
+mdui-list mdui-collapse-item {
+  margin-bottom: 8px;
+}
+
+/* 标签页内容内边距 */
+mdui-tab-panel {
+  padding: 16px 0;
+}
+
+/* ---------- 可复用组件类(消除页面内联样式) ---------- */
+
+/* 特性块:大图标 + 标题 + 描述(features.ts、development.ts 复用) */
+.zf-feature-block {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.zf-feature-block mdui-icon {
+  font-size: 36px;
+  color: var(--mdui-color-primary);
+}
+.zf-feature-block h2 {
+  font-size: 24px;
+  font-weight: 600;
+}
+.zf-feature-block-text {
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 16px;
+  color: var(--mdui-color-primary);
+}
+.zf-feature-block-desc {
+  color: var(--mdui-color-on-surface-variant);
+  margin-bottom: 16px;
+  line-height: 1.7;
+}
+
+/* 特性卡片:居中布局(development.ts 技术栈卡片) */
+.zf-feature-card {
+  text-align: center;
+}
+.zf-feature-card mdui-icon {
+  font-size: 40px;
+  color: var(--mdui-color-primary);
+  margin: 0 auto 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  line-height: 1;
+}
+.zf-feature-card h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.zf-feature-card .zf-feature-role {
+  font-size: 13px;
+  color: var(--mdui-color-primary);
+  margin-bottom: 8px;
+}
+.zf-feature-card .zf-feature-list {
+  font-size: 14px;
+  color: var(--mdui-color-on-surface-variant);
+  line-height: 1.8;
+}
+
+/* 检查项列表(check + 加粗标题 + 描述) */
+.zf-check-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.zf-check-item mdui-icon {
+  color: var(--mdui-color-primary);
+}
+
+/* 紧凑版检查项(用于 timeline 中) */
+.zf-check-item-sm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+.zf-check-item-sm mdui-icon {
+  font-size: 18px;
+  color: var(--mdui-color-primary);
+}
+
+/* 时间线条目 */
+.zf-timeline {
+  margin-bottom: 48px;
+}
+.zf-timeline-item {
+  background: var(--mdui-color-surface-container);
+  border-radius: var(--zf-radius-card-sm);
+  padding: 24px 28px;
+  margin-bottom: 16px;
+  border-left: 4px solid var(--mdui-color-primary);
+  transition: transform 0.3s var(--zf-ease-standard),
+              box-shadow 0.3s var(--zf-ease-standard);
+}
+.zf-timeline-item:hover {
+  transform: translateX(4px);
+  box-shadow: var(--zf-shadow-lift);
+}
+.zf-timeline-date {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--mdui-color-primary);
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.zf-timeline-item h3 {
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: var(--mdui-color-on-surface);
+}
+.zf-timeline-item p {
+  color: var(--mdui-color-on-surface-variant);
+  line-height: 1.7;
+}
+
+/* 时间线分组标题(改进/修复/新功能) */
+.zf-timeline-group-title {
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+}
+.zf-timeline-group-title mdui-icon {
+  font-size: 20px;
+}
+
+/* 步骤(development.ts 贡献流程、guide.ts 复制流程) */
+.zf-step {
+  text-align: center;
+}
+.zf-step-num {
+  width: 48px;
+  height: 48px;
+  line-height: 48px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  background: var(--zf-gradient-brand);
+  color: var(--mdui-color-on-primary);
+  font-size: 20px;
+  font-weight: 700;
+  box-shadow: var(--zf-shadow-lift);
+}
+.zf-step-title {
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+.zf-step-desc {
+  font-size: 13px;
+  color: var(--mdui-color-on-surface-variant);
+}
+
+/* 步骤卡片(guide.ts 文件操作 1-2-3) */
+.zf-step-card {
+  text-align: center;
+  padding: 8px;
+}
+.zf-step-card mdui-icon {
+  font-size: 32px;
+  color: var(--mdui-color-primary);
+  margin: 0 auto 8px;
+  display: inline-block;
+}
+.zf-step-card-title {
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+.zf-step-card-desc {
+  font-size: 13px;
+  color: var(--mdui-color-on-surface-variant);
+  line-height: 1.6;
+}
+
+/* 区块标题(带图标的 h2) */
+.zf-block-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 24px;
+  font-weight: 700;
+  margin: 48px 0 20px;
+  color: var(--mdui-color-on-surface);
+  width: 100%;
+}
+.zf-block-title mdui-icon {
+  font-size: 28px;
+  color: var(--mdui-color-primary);
+  flex-shrink: 0;
+}
+
+/* 章节小标题(h3) */
+.zf-subtitle {
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 16px;
+  color: var(--mdui-color-on-surface);
+}
+.zf-subtitle-sm {
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 12px;
+  color: var(--mdui-color-primary);
+}
+
+/* 章节列表(有序/无序) */
+.zf-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.zf-list-prose {
+  padding-left: 20px;
+  line-height: 2;
+  color: var(--mdui-color-on-surface-variant);
+}
+
+/* 卡片内"头部"模式(图标+标题) */
+.zf-card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.zf-card-head mdui-icon {
+  color: var(--mdui-color-primary);
+}
+.zf-card-head span {
+  font-weight: 600;
+}
+
+/* 系统要求卡片的强调数值 */
+.zf-emph-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--mdui-color-primary);
+  margin-bottom: 4px;
+}
+.zf-emph-sub {
+  font-size: 13px;
+  color: var(--mdui-color-outline);
+}
+
+/* 下载页双按钮组 */
+.zf-button-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.zf-button-row > mdui-button {
+  flex: 1;
+  min-width: 200px;
+  justify-content: center;
+}
+
+/* 下载页脚注 */
+.zf-meta {
+  font-size: 13px;
+  color: var(--mdui-color-outline);
+}
+
+/* 版本徽标 */
+.zf-version-badge {
+  display: inline-block;
+  padding: 6px 16px;
+  border-radius: var(--zf-radius-pill);
+  background: var(--mdui-color-primary-container);
+  color: var(--mdui-color-on-primary-container);
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 24px;
+}
+
+/* 贡献者头像网格 */
+.zf-contributors {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 24px;
+}
+.zf-contributor {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px;
+  margin: 4px;
+  text-decoration: none;
+  color: inherit;
+  border-radius: 12px;
+  transition: background 0.2s var(--zf-ease-standard);
+}
+.zf-contributor:hover {
+  background: var(--mdui-color-surface-container-high);
+}
+.zf-contributor mdui-avatar {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 4px;
+}
+.zf-contributor span {
+  font-size: 12px;
+}
+
+/* 加载/错误状态 */
+.zf-loading-text {
+  color: var(--mdui-color-on-surface-variant);
+  font-style: italic;
+}
+.zf-error-text {
+  color: var(--mdui-color-on-surface-variant);
+  font-size: 13px;
+}
+
+/* 卡片内居中文本段落(about.ts 介绍卡) */
+.zf-prose-center {
+  max-width: 640px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+/* Chip 列表(about.ts 未来展望) */
+.zf-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+/* 链接卡片网格间距(about.ts 相关链接) */
+.zf-link-grid {
+  margin-bottom: 16px;
+}
+
+/* 联系方式卡片(居中) */
+.zf-contact-card {
+  text-align: center;
+  margin-bottom: 16px;
+}
+.zf-contact-card h3 {
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+.zf-contact-card p {
+  color: var(--mdui-color-on-surface-variant);
+  margin-bottom: 16px;
+}
+
+/* 居中贡献者信息 */
+.zf-contributor-main {
+  text-align: center;
+}
+.zf-contributor-main mdui-avatar {
+  width: 80px;
+  height: 80px;
+  margin-bottom: 12px;
+}
+.zf-contributor-name {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.zf-contributor-role {
+  font-size: 13px;
+  color: var(--mdui-color-on-surface-variant);
+  margin-bottom: 12px;
+}
+
+/* ---------- 渐变边框卡片(development.ts 依赖表) */
+.zf-card-accent {
+  border-top: 3px solid var(--mdui-color-primary);
+}
+
+/* ---------- home.ts 布局补充 ---------- */
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 48px;
+  align-items: center;
+  width: 100%;
+  position: relative;
+  z-index: 2;
+}
+.section-alt {
+  background: var(--mdui-color-surface-container-low);
+}
+.stat-card-btn {
+  margin-top: 16px;
+}
+.stat-value-sm {
+  font-size: 26px;
+}
+.code-window-dot--red { background: #ef5350; }
+.code-window-dot--yellow { background: #ffc107; }
+.code-window-dot--green { background: #4caf50; }
+
+/* ---------- features.ts 布局补充 ---------- */
+.zf-content-narrow { max-width: 1000px; }
+.zf-feature-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: center;
+}
+.zf-check-item-li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+.zf-check-item-li mdui-icon {
+  color: var(--mdui-color-primary);
+  flex-shrink: 0;
+}
+.zf-chip-row--inline { margin-top: 0; }
+@media (max-width: 768px) {
+  .zf-feature-2col { grid-template-columns: 1fr; }
+}
+
+/* ---------- download.ts / changelog.ts 通用 ---------- */
+.zf-block-space { margin-bottom: 48px; }
+.zf-block-space-sm { margin-bottom: 24px; }
+.zf-faq-content {
+  padding: 0 20px 16px;
+  color: var(--mdui-color-on-surface-variant);
+  line-height: 1.8;
+}
+.zf-subtitle-spaced { margin: 32px 0 16px; }
+.zf-tab-prose { color: var(--mdui-color-on-surface-variant); line-height: 1.8; }
+.zf-meta-text { color: var(--mdui-color-on-surface-variant); margin-bottom: 16px; }
+.zf-list-prose-sm {
+  padding-left: 20px;
+  line-height: 2;
+  color: var(--mdui-color-on-surface-variant);
+  font-size: 14px;
+}
+
+/* ---------- changelog.ts 主题色调(替代硬编码颜色) ---------- */
+.zf-tone-primary { color: var(--mdui-color-primary); }
+.zf-tone-tertiary { color: var(--mdui-color-tertiary); }
+.zf-tone-error { color: var(--mdui-color-error); }
+.zf-tone-outline { color: var(--mdui-color-outline); }
+.zf-list-relaxed { line-height: 2; color: var(--mdui-color-outline); }
+.zf-change-group { margin-bottom: 16px; }
+.zf-latest-chip { margin-bottom: 16px; }
+
+/* ---------- changelog.ts: 最新版突出卡片 + 历史折叠 ---------- */
+/* 最新版本:大卡片 + 渐变侧边条 + 阴影 + 内嵌"最新发布"角标 */
+.zf-latest-card {
+  position: relative;
+  background: var(--mdui-color-surface-container);
+  border-radius: var(--zf-radius-card);
+  padding: 0;
+  margin-bottom: 48px;
+  box-shadow: var(--zf-shadow-float);
+  overflow: hidden;
+  border: 1px solid var(--mdui-color-primary-container);
+}
+.zf-latest-card-bar {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 6px;
+  background: var(--zf-gradient-brand);
+}
+.zf-latest-card-content { padding: 32px 32px 32px 40px; }
+.zf-latest-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.zf-latest-card-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: var(--zf-radius-pill);
+  background: var(--zf-gradient-brand);
+  color: var(--mdui-color-on-primary);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+.zf-latest-card-eyebrow mdui-icon {
+  font-size: 14px;
+  color: inherit !important;
+}
+.zf-latest-card-version {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--mdui-color-on-surface);
+  margin-bottom: 8px;
+}
+.zf-latest-card-summary {
+  display: inline-block;
+  font-size: 13px;
+  color: var(--mdui-color-primary);
+  background: var(--mdui-color-primary-container);
+  padding: 4px 12px;
+  border-radius: var(--zf-radius-pill);
+  margin: 0 0 24px;
+  font-weight: 500;
+}
+
+/* 历史版本:折叠列表(紧凑卡片样式) */
+.zf-history-list {
+  border-radius: var(--zf-radius-card-sm);
+  overflow: hidden;
+  margin-bottom: 48px;
+  background: var(--mdui-color-surface-container-low);
+}
+.zf-history-list mdui-collapse-item {
+  border-bottom: 1px solid var(--mdui-color-outline-variant);
+}
+.zf-history-list mdui-collapse-item:last-child {
+  border-bottom: none;
+}
+.zf-history-item { width: 100%; }
+.zf-history-version {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--mdui-color-on-surface);
+}
+.zf-history-summary {
+  font-size: 12px;
+  color: var(--mdui-color-on-surface-variant);
+  margin-top: 2px;
+}
+.zf-history-content {
+  padding: 8px 20px 20px 56px;
+  color: var(--mdui-color-on-surface-variant);
+}
+.zf-history-content .zf-change-group { margin-bottom: 12px; }
+.zf-history-content .zf-change-group:last-child { margin-bottom: 0; }
+
+/* ---------- about.ts 补充 ---------- */
+.zf-stat-tip { margin-top: 4px; }
+.zf-subtitle-with-icon {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.zf-prose-cta { margin-top: 16px; }
+
+/* ---------- development.ts 补充 ---------- */
+.zf-req-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.zf-architecture-intro {
+  line-height: 1.8;
+  margin-bottom: 16px;
+}
+
+/* ---------- 图标与文本基线对齐 ---------- */
+/* mdui-icon 是 Material Icons 字体字符,默认 inline + baseline 对齐。
+   不要强制 width/height 1em(会裁掉大尺寸图标),只调整对齐方式。 */
+mdui-icon {
+  vertical-align: middle;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+/* TopAppBar 左右侧预留 12px 空间 */
+mdui-top-app-bar > :last-child { margin-right: 12px; }
+mdui-top-app-bar > :first-child { margin-left: 12px; }
+
+/* ---------- 响应式 ---------- */
+@media (max-width: 960px) {
+  .zf-footer-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+  }
+  .grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .hero {
+    min-height: auto;
+    padding: 32px 0 48px;
+  }
+  .hero-bg::before,
+  .hero-bg::after {
+    display: none;
+  }
+  .hero-code {
+    display: none;
+  }
+  .hero-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .hero-stats {
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .section {
+    padding: 48px 0;
+  }
+  .grid-2,
+  .grid-3,
+  .grid-4 {
+    grid-template-columns: 1fr;
+  }
+  .zf-footer-grid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .cta-section {
+    padding: 48px 20px;
+    border-radius: 28px;
+  }
+  .timeline-item {
+    padding: 20px 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container,
+  .container-narrow,
+  .container-wide {
+    padding: 0 16px;
+  }
+  .grid-auto {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================================
+   移动端深度优化(M3 响应式最佳实践)
+   1. 消除 mdui-layout-main 默认 padding(由 .container 统一管理)
+   2. 触摸目标最小 44x44
+   3. 文本字号最小 16px(防 iOS 自动缩放)
+   4. 长内容横向滚动(代码块、表格)
+   5. Hero/Footer 重排
+   ============================================================ */
+
+/* 全局:mdui-layout-main 移除外边距(让 .container 接管) */
+mdui-layout-main {
+  --mdui-layout-main-padding-x: 0;
+  --mdui-layout-main-padding-y: 0;
+}
+
+/* 全局:防止 iOS 自动缩放 + 触摸优化 */
+@media (max-width: 768px) {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  /* 移动端所有可点击元素至少 44px */
+  mdui-button-icon,
+  mdui-list-item,
+  .code-copy-btn,
+  mdui-button {
+    min-height: 44px;
+  }
+}
+
+/* 移动端 ≤ 768px */
+@media (max-width: 768px) {
+  /* 1. 容器统一管理 padding(替代 mdui-layout-main 默认 padding) */
+  .container,
+  .container-narrow,
+  .container-wide {
+    padding: 0 16px;
+  }
+
+  /* 2. Hero 区域紧凑化 */
+  .hero {
+    min-height: auto;
+    padding: 32px 0 40px;
+  }
+  .hero-bg::before,
+  .hero-bg::after {
+    display: none;
+  }
+  .hero-code {
+    display: none;
+  }
+  .hero-eyebrow {
+    font-size: 11px;
+    padding: 5px 10px;
+    gap: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+  .hero-eyebrow mdui-icon {
+    font-size: 14px !important;
+  }
+  .hero-title {
+    font-size: 36px;
+    line-height: 1.1;
+  }
+  .hero-subtitle {
+    font-size: 18px;
+    line-height: 1.5;
+  }
+  .hero-desc {
+    font-size: 14px;
+    line-height: 1.7;
+  }
+  /* Hero 按钮:全宽堆叠 */
+  .hero-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .hero-actions mdui-button {
+    width: 100%;
+    --mdui-button-height: 48px;
+  }
+  /* Hero 统计:2 行 3 列 */
+  .hero-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 32px;
+    padding-top: 24px;
+  }
+  .hero-stat-num {
+    font-size: 22px;
+  }
+  .hero-stat-label {
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  /* 3. 卡片内边距缩小 */
+  .zf-card,
+  .feature-card,
+  .stat-card {
+    padding: 20px;
+  }
+  .zf-card-sm {
+    padding: 16px;
+  }
+
+  /* 3.1 特性卡片:2 列紧凑网格(小屏不再单列堆叠,避免冗长) */
+  .feature-card {
+    padding: 16px;
+    text-align: left;
+  }
+  .feature-card-icon {
+    font-size: 28px !important;
+    margin-bottom: 10px;
+  }
+  .feature-card h3 {
+    font-size: 15px;
+    margin-bottom: 4px;
+  }
+  .feature-card p {
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  /* stat-card 2 列 */
+  .stat-card {
+    padding: 16px;
+  }
+  .stat-card mdui-icon {
+    font-size: 24px !important;
+  }
+  .stat-value {
+    font-size: 22px !important;
+  }
+  .stat-value-sm {
+    font-size: 16px !important;
+  }
+  .stat-label {
+    font-size: 11px !important;
+  }
+
+  /* 4. 区块标题/副标题 */
+  .section {
+    padding: 40px 0;
+  }
+  .section-title {
+    font-size: 24px;
+  }
+  .section-subtitle {
+    font-size: 14px;
+    margin-bottom: 32px;
+  }
+  .page-header {
+    padding: 40px 0 24px;
+  }
+  .page-header-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+  }
+  .page-title {
+    font-size: 28px;
+  }
+  .page-desc {
+    font-size: 14px;
+  }
+
+  /* 5. 区块标题(zf-block-title) */
+  .zf-block-title {
+    font-size: 18px;
+  }
+  .zf-block-title mdui-icon {
+    font-size: 22px;
+  }
+
+  /* 6. 特性双列(代码 + 描述)堆叠 */
+  .zf-feature-2col {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .zf-feature-block h2 {
+    font-size: 20px;
+  }
+  .zf-feature-block-text {
+    font-size: 16px;
+  }
+
+  /* 7. 表格横向滚动 */
+  .zf-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .zf-table-wrap table {
+    min-width: 480px;
+  }
+  .zf-table-wrap th,
+  .zf-table-wrap td {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+
+  /* 8. 代码块横向滚动 + 缩字号 */
+  .code-block,
+  .zf-cmd-code {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  pre {
+    overflow-x: auto;
+  }
+
+  /* 9. chips 区域紧凑化 */
+  .zf-chip-row {
+    gap: 6px;
+    margin-top: 12px;
+  }
+
+  /* 10. 时间线紧凑 */
+  .zf-timeline-item,
+  .timeline-item {
+    padding: 16px 20px;
+  }
+
+  /* 11. 最新版卡片紧凑 */
+  .zf-latest-card-content {
+    padding: 20px 20px 20px 28px;
+  }
+  .zf-latest-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .zf-latest-card-version {
+    font-size: 20px;
+  }
+
+  /* 12. 历史版本列表紧凑 */
+  .zf-history-content {
+    padding: 8px 16px 16px 16px;
+  }
+
+  /* 13. FAQ 列表紧凑 */
+  .zf-faq-content {
+    padding: 0 16px 12px;
+  }
+
+  /* 14. 命令行块布局 */
+  .zf-cmd-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .zf-cmd-row .code-copy-btn {
+    align-self: flex-end;
+  }
+
+  /* 15. 步骤卡片紧凑 */
+  .zf-step,
+  .zf-step-card {
+    padding: 16px;
+  }
+  .zf-step-num {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+  .zf-step-card-title {
+    font-size: 14px;
+  }
+  .zf-step-card-desc {
+    font-size: 12px;
+  }
+
+  /* 16. CTA 区紧凑 */
+  .cta-section {
+    padding: 32px 16px;
+    border-radius: 24px;
+  }
+  .cta-section h2 {
+    font-size: 22px;
+  }
+  .cta-section p {
+    font-size: 14px;
+  }
+  .cta-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+  .cta-actions mdui-button {
+    width: 100%;
+    --mdui-button-height: 48px;
+  }
+
+  /* 17. 强调数值 */
+  .zf-emph-value {
+    font-size: 20px;
+  }
+  .zf-emph-sub {
+    font-size: 12px;
+  }
+
+  /* 18. 网格:4 列变 2 列(特性卡 / 数据卡紧凑排布,提升单屏信息密度) */
+  .grid-2,
+  .grid-auto,
+  .grid-auto-sm {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  /* 3 列和 4 列仍然堆叠为 1 列(场景:技术栈/项目数据) */
+  .grid-3,
+  .grid-4 {
+    grid-template-columns: 1fr;
+  }
+
+  /* 19. 列表样式 */
+  .zf-list,
+  .zf-list-prose,
+  .zf-list-relaxed {
+    font-size: 14px;
+  }
+  .zf-list-prose-sm {
+    font-size: 13px;
+  }
+
+  /* 20. 文字段落最小 14px */
+  p,
+  li {
+    font-size: 14px;
+  }
+
+  /* 21. footer 紧凑 + 移动端布局:品牌独占整行 + 3 列链接(导航/更多/链接) */
+  .zf-footer {
+    padding: 32px 0 16px;
+  }
+  .zf-footer-grid {
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-areas:
+      "brand brand brand"
+      "nav   more  links";
+    gap: 20px 12px;
+    align-items: start;
+  }
+  .zf-footer-grid > div:nth-child(1) { grid-area: brand; }
+  .zf-footer-grid > div:nth-child(2) { grid-area: nav; }
+  .zf-footer-grid > div:nth-child(3) { grid-area: more; }
+  .zf-footer-grid > div:nth-child(4) { grid-area: links; }
+  .zf-footer-inner {
+    padding: 0 16px;
+  }
+  .zf-footer-brand {
+    font-size: 18px;
+    margin-bottom: 6px;
+  }
+  .zf-footer-tagline {
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .zf-footer-col-title {
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--mdui-color-primary);
+  }
+  .zf-footer-links {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0 !important;
+    margin: 0;
+    padding: 0;
+  }
+  .zf-footer-links a {
+    display: flex !important;
+    align-items: center !important;
+    width: 100%;
+    padding: 5px 4px !important;
+    font-size: 13px;
+    min-height: 30px;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+  }
+  .zf-footer-links a:active {
+    background-color: var(--mdui-color-surface-container-high);
+  }
+  .zf-footer-bottom {
+    font-size: 12px;
+    text-align: center;
+    margin-top: 16px;
+  }
+
+  /* 22. 回顶按钮位置调整 */
+  #back-to-top {
+    right: 16px;
+    bottom: 16px;
+  }
+  /* FAB 在移动端不显示文字,只显示图标(节省空间) */
+  #back-to-top[extended]::part(label) {
+    display: none;
+  }
+  #back-to-top {
+    /* 覆盖 extended 模式的 padding */
+    padding: 0 !important;
+    width: 56px !important;
+    min-width: 56px !important;
+  }
+}
+
+/* 超小屏 ≤ 380px(老 iPhone SE 等) */
+@media (max-width: 380px) {
+  .hero-title {
+    font-size: 30px;
+  }
+  .hero-eyebrow {
+    font-size: 10px;
+    padding: 4px 8px;
+  }
+  .zf-card,
+  .feature-card,
+  .stat-card {
+    padding: 16px;
+  }
+  .zf-feature-block h2 {
+    font-size: 18px;
+  }
+  .page-title {
+    font-size: 24px;
+  }
+}
+
+/* 横屏(高度 < 500px) */
+@media (max-height: 500px) and (orientation: landscape) {
+  .hero {
+    min-height: auto;
+    padding: 24px 0;
+  }
+  .page-header {
+    padding: 24px 0 16px;
+  }
+}
