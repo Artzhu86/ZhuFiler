@@ -133,4 +133,5 @@
     <string name="indent_with_spaces">Indent with spaces</string>
     <string name="fold_code">Code folding</string>
     <string name="install">Install</string>
+    <string name="install_permission_required">Permission to install unknown apps required</string>
 </resources>

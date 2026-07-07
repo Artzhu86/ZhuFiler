@@ -137,4 +137,5 @@
     <string name="indent_with_spaces">使用空格缩进</string>
     <string name="fold_code">代码折叠</string>
     <string name="install">安装</string>
+    <string name="install_permission_required">需要安装未知应用权限</string>
 </resources>

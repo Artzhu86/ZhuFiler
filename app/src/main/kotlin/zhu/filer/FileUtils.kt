@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
+import android.os.Build
 import android.text.format.Formatter
 import android.util.TypedValue
 import android.view.ViewGroup
@@ -299,6 +300,16 @@ private fun launchImagePreview(activity: AppCompatActivity, file: File) {
 }
 
 private fun installApk(activity: AppCompatActivity, file: File) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (!activity.packageManager.canRequestPackageInstalls()) {
+            toast(activity, activity.getString(R.string.install_permission_required))
+            val intent = Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
+                data = android.net.Uri.parse("package:${activity.packageName}")
+            }
+            activity.startActivity(intent)
+            return
+        }
+    }
     try {
         val uri = FileProvider.getUriForFile(
             activity,
