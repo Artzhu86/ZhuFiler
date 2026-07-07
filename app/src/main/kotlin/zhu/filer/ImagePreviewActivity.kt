@@ -3,20 +3,27 @@ package zhu.filer
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.os.Bundle
+import android.text.format.Formatter
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
-import android.widget.Toast
+import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.core.view.updatePadding
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import androidx.recyclerview.widget.RecyclerView
+import androidx.viewpager2.widget.ViewPager2
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import io.getstream.photoview.PhotoView
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import zhu.filer.databinding.ActivityImagePreviewBinding
+import zhu.filer.databinding.ItemImagePageBinding
 
 import com.google.android.material.R as materialR
 
@@ -27,6 +34,8 @@ class ImagePreviewActivity : AppCompatActivity() {
     }
 
     private lateinit var binding: ActivityImagePreviewBinding
+    private lateinit var images: List<File>
+    private var currentIndex: Int = 0
     private var isFullscreen = false
     private var originalBgColor: Int = Color.TRANSPARENT
 
@@ -39,39 +48,103 @@ class ImagePreviewActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         val filePath = intent.getStringExtra(EXTRA_FILE_PATH)
-        val file = filePath?.let { File(it) }
-        if (file == null || !file.canRead()) {
+        val f = filePath?.let { File(it) }
+        if (f == null || !f.canRead()) {
             finish()
             return
         }
+
+        images = loadImagesInDirectory(f)
+        currentIndex = images.indexOf(f).coerceAtLeast(0)
 
         originalBgColor = getThemeColor(this, android.R.attr.colorBackground)
 
         setSupportActionBar(binding.toolbar)
         supportActionBar?.apply {
-            title = middleEllipsize(file.name)
             setDisplayHomeAsUpEnabled(true)
+            title = currentFile().name
         }
+        applyToolbarTitleName(binding.toolbar, currentFile().name)
+        updateSubtitle()
 
         binding.toolbar.setBackgroundColor(getThemeColor(this, materialR.attr.colorPrimaryContainer))
 
-        ViewCompat.setOnApplyWindowInsetsListener(binding.toolbar) { v, insets ->
-            val sb = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.updatePadding(top = sb.top)
-            insets
-        }
+        val statusBarHeight = getStatusBarHeight()
+        binding.toolbar.layoutParams.height = binding.toolbar.layoutParams.height + statusBarHeight
+        binding.toolbar.setPadding(0, statusBarHeight, 0, 0)
 
-        binding.imageView.setOnViewTapListener { _, _, _ ->
-            toggleFullscreen()
-        }
-
-        binding.imageView.setOnScaleChangeListener { scaleFactor, _, _ ->
-            if (scaleFactor > 1f && !isFullscreen) {
-                toggleFullscreen()
+        binding.imagePager.adapter = ImagePagerAdapter(
+            images = images,
+            onTap = { toggleFullscreen() },
+            onScaleChange = { scaleFactor ->
+                if (scaleFactor > 1f && !isFullscreen) {
+                    toggleFullscreen()
+                }
             }
-        }
+        )
+        binding.imagePager.setCurrentItem(currentIndex, false)
+        binding.imagePager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                currentIndex = position
+                supportActionBar?.title = currentFile().name
+                applyToolbarTitleName(binding.toolbar, currentFile().name)
+                updateSubtitle()
+            }
+        })
+    }
 
-        loadImage(file)
+    private fun currentFile(): File = images[currentIndex]
+
+    private fun getStatusBarHeight(): Int {
+        var result = 0
+        val resourceId = resources.getIdentifier("status_bar_height", "dimen", "android")
+        if (resourceId > 0) {
+            result = resources.getDimensionPixelSize(resourceId)
+        }
+        return result
+    }
+
+    private fun loadImagesInDirectory(target: File): List<File> {
+        val dir = target.parentFile ?: return listOf(target)
+        val prefs = getSharedPreferences("filer_prefs", MODE_PRIVATE)
+        val showHidden = prefs.getBoolean("show_hidden", false)
+        val sortMode = runCatching {
+            SortMode.valueOf(prefs.getString("sort_mode", SortMode.NAME.name) ?: SortMode.NAME.name)
+        }.getOrDefault(SortMode.NAME)
+        val files = dir.listFiles { file ->
+            file.isFile &&
+                FileType.isImage(file) &&
+                (showHidden || !file.name.startsWith("."))
+        } ?: return listOf(target)
+        return if (files.isEmpty()) listOf(target) else files.sortedWith(getSortComparator(sortMode))
+    }
+
+    private fun updateSubtitle() {
+        val file = currentFile()
+        val dateStr = SimpleDateFormat(getString(R.string.date_format), Locale.getDefault())
+            .format(Date(file.lastModified()))
+        val sizeStr = Formatter.formatFileSize(this, file.length())
+
+        val opts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(file.absolutePath, opts)
+        val w = opts.outWidth
+        val h = opts.outHeight
+        val dimStr = if (w > 0 && h > 0) "  (${w}x${h})" else ""
+
+        supportActionBar?.subtitle = "$dateStr  $sizeStr$dimStr"
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menu.add(Menu.NONE, Menu.FIRST, Menu.NONE, getString(R.string.share))
+            .setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            Menu.FIRST -> shareFile(this, currentFile())
+        }
+        return super.onOptionsItemSelected(item)
     }
 
     private fun toggleFullscreen() {
@@ -106,33 +179,48 @@ class ImagePreviewActivity : AppCompatActivity() {
         return true
     }
 
-    private fun loadImage(file: File) {
-        lifecycleScope.launch {
-            val bmp = withContext(Dispatchers.IO) {
-                runCatching {
-                    val opts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-                    BitmapFactory.decodeFile(file.absolutePath, opts)
-                    val targetWidth = resources.displayMetrics.widthPixels
-                    val targetHeight = resources.displayMetrics.heightPixels
-                    var sampleSize = 1
-                    while (opts.outWidth / sampleSize > targetWidth * 2 ||
-                           opts.outHeight / sampleSize > targetHeight * 2) {
-                        sampleSize *= 2
-                    }
-                    val decodeOpts = BitmapFactory.Options().apply { inSampleSize = sampleSize }
-                    BitmapFactory.decodeFile(file.absolutePath, decodeOpts)
-                }.getOrNull()
-            }
-            if (bmp == null) {
-                Toast.makeText(
-                    this@ImagePreviewActivity,
-                    getString(R.string.image_load_failed),
-                    Toast.LENGTH_LONG
-                ).show()
-                finish()
-            } else {
-                binding.imageView.setImageBitmap(bmp)
-            }
+    override fun onResume() {
+        super.onResume()
+        if (::binding.isInitialized) {
+            refreshToolbarTitle(binding.toolbar)
         }
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus && ::binding.isInitialized) {
+            refreshToolbarTitle(binding.toolbar)
+        }
+    }
+
+    private class ImagePagerAdapter(
+        private val images: List<File>,
+        private val onTap: () -> Unit,
+        private val onScaleChange: (Float) -> Unit
+    ) : RecyclerView.Adapter<ImagePagerAdapter.PageHolder>() {
+
+        class PageHolder(val binding: ItemImagePageBinding) : RecyclerView.ViewHolder(binding.root)
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PageHolder {
+            val binding = ItemImagePageBinding.inflate(
+                LayoutInflater.from(parent.context), parent, false
+            )
+            return PageHolder(binding)
+        }
+
+        override fun onBindViewHolder(holder: PageHolder, position: Int) {
+            val photoView: PhotoView = holder.binding.root
+            photoView.setScale(1f, false)
+            photoView.setOnViewTapListener { _, _, _ -> onTap() }
+            photoView.setOnScaleChangeListener { scaleFactor, _, _ -> onScaleChange(scaleFactor) }
+            Glide.with(photoView.context)
+                .load(images[position])
+                .diskCacheStrategy(DiskCacheStrategy.NONE)
+                .fitCenter()
+                .error(R.drawable.outline_image_24)
+                .into(photoView)
+        }
+
+        override fun getItemCount(): Int = images.size
     }
 }

@@ -10,12 +10,14 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import android.webkit.MimeTypeMap
+import android.widget.LinearLayout
 import android.widget.TableLayout
 import android.widget.TableRow
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
 import androidx.core.content.FileProvider
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
@@ -23,9 +25,6 @@ import com.google.android.material.textfield.TextInputLayout
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
-
-val textExts = setOf("txt", "log", "md", "json", "xml", "kt", "java", "c", "cpp", "py", "html", "css", "js")
-val imageExts = setOf("jpg", "jpeg", "png", "gif", "bmp", "webp")
 
 enum class SortMode(val labelRes: Int) {
     NAME(R.string.sort_by_name),
@@ -42,31 +41,56 @@ fun getSortComparator(mode: SortMode): Comparator<File> {
     }
 }
 
-private const val PATH_DISPLAY_MAX_LEN = 20
 private const val RECENT_SEPARATOR = "|"
 private const val RECENT_MAX_COUNT = 10
 
-const val TITLE_MAX_LEN = 15
+private const val ELLIPSIZE_START = 0
+private const val ELLIPSIZE_MIDDLE = 1
 
-fun middleEllipsize(text: String, maxLen: Int = TITLE_MAX_LEN): String {
-    if (text.length <= maxLen) return text
-    if (maxLen <= 1) return "…"
-    val keep = maxLen - 1
-    val head = keep / 2
-    val tail = keep - head
-    return text.take(head) + "…" + text.takeLast(tail)
+fun applyToolbarTitle(toolbar: Toolbar, text: String, mode: Int = ELLIPSIZE_MIDDLE) {
+    toolbar.title = text
+    toolbar.setTag(R.id.tag_toolbar_title, text to mode)
+    refreshToolbarTitle(toolbar)
+}
+
+fun refreshToolbarTitle(toolbar: Toolbar) {
+    toolbar.post {
+        @Suppress("UNCHECKED_CAST")
+        val tag = toolbar.getTag(R.id.tag_toolbar_title) as? Pair<String, Int> ?: return@post
+        val mode = tag.second
+        val titleView = getToolbarTitleTextView(toolbar)
+        if (titleView == null) {
+            toolbar.postDelayed({ refreshToolbarTitle(toolbar) }, 100)
+            return@post
+        }
+        titleView.setSingleLine(true)
+        titleView.ellipsize = when (mode) {
+            ELLIPSIZE_START -> android.text.TextUtils.TruncateAt.START
+            else -> android.text.TextUtils.TruncateAt.MIDDLE
+        }
+    }
+}
+
+fun applyToolbarTitlePath(toolbar: Toolbar, path: String) =
+    applyToolbarTitle(toolbar, path, ELLIPSIZE_START)
+
+fun applyToolbarTitleName(toolbar: Toolbar, name: String) =
+    applyToolbarTitle(toolbar, name, ELLIPSIZE_MIDDLE)
+
+private fun getToolbarTitleTextView(toolbar: Toolbar): TextView? {
+    return try {
+        val field = Toolbar::class.java.getDeclaredField("mTitleTextView")
+        field.isAccessible = true
+        field.get(toolbar) as? TextView
+    } catch (e: Exception) {
+        null
+    }
 }
 
 fun createFileItem(context: Context, file: File): FileItem {
     val timeStr = SimpleDateFormat(context.getString(R.string.date_format), Locale.getDefault()).format(Date(file.lastModified()))
     val sizeStr = Formatter.formatFileSize(context, file.length())
-    val iconRes = when {
-        file.isDirectory -> R.drawable.outline_folder_24
-        file.extension.lowercase(Locale.ROOT) in textExts -> R.drawable.outline_description_24
-        file.extension.lowercase(Locale.ROOT) in imageExts -> R.drawable.outline_image_24
-        else -> R.drawable.outline_insert_drive_file_24
-    }
-    return FileItem(file, file.name, iconRes, "$timeStr  $sizeStr")
+    return FileItem(file, file.name, FileType.getIconRes(file), "$timeStr  $sizeStr")
 }
 
 fun toast(context: Context, msg: String, duration: Int = Toast.LENGTH_SHORT) {
@@ -81,6 +105,13 @@ fun getThemeColor(context: Context, attr: Int, fallback: Int = android.graphics.
     return if (context.theme.resolveAttribute(attr, tv, true)) tv.data else fallback
 }
 
+fun createDialogContainer(context: Context): LinearLayout {
+    return LinearLayout(context).apply {
+        orientation = LinearLayout.VERTICAL
+        setPadding(dpToPx(context, 16), dpToPx(context, 16), dpToPx(context, 16), 0)
+    }
+}
+
 fun createInput(context: Context, initial: String = ""): Pair<TextInputLayout, TextInputEditText> {
     val tl = TextInputLayout(context).apply {
         hint = null
@@ -91,6 +122,18 @@ fun createInput(context: Context, initial: String = ""): Pair<TextInputLayout, T
         setSingleLine(true)
         setText(initial)
         setSelection(initial.length)
+    }
+    tl.addView(et)
+    return tl to et
+}
+
+fun createPasswordInput(context: Context, hint: String): Pair<TextInputLayout, TextInputEditText> {
+    val tl = TextInputLayout(context).apply {
+        this.hint = hint
+        layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+    }
+    val et = TextInputEditText(tl.context).apply {
+        setSingleLine(true)
     }
     tl.addView(et)
     return tl to et
@@ -163,22 +206,29 @@ fun openFileWithSystem(context: Context, file: File) {
     }
 }
 
-fun previewFile(activity: AppCompatActivity, file: File, forceChoose: Boolean = false) {
+fun previewFile(
+    activity: AppCompatActivity,
+    file: File,
+    forceChoose: Boolean = false,
+    onOpenArchive: ((File) -> Unit)? = null
+) {
     if (!file.canRead()) { toast(activity, activity.getString(R.string.cannot_read)); return }
-    val ext = file.extension.lowercase(Locale.ROOT)
-    if (forceChoose || (ext !in textExts && ext !in imageExts)) {
-        val options = listOf(
+    val isArchive = FileType.isArchive(file)
+    if (forceChoose) {
+        val options = mutableListOf(
             activity.getString(R.string.open),
             activity.getString(R.string.text),
             activity.getString(R.string.image)
         )
+        if (isArchive) options.add(activity.getString(R.string.archive))
         val dialog = MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.open_with)
             .setItems(options.toTypedArray()) { _, which ->
                 when (which) {
                     0 -> openFileWithSystem(activity, file)
-                    1 -> launchTextPreview(activity, file)
+                    1 -> launchTextEditor(activity, file)
                     2 -> launchImagePreview(activity, file)
+                    3 -> onOpenArchive?.invoke(file)
                 }
             }
             .setNegativeButton(R.string.cancel, null)
@@ -188,14 +238,16 @@ fun previewFile(activity: AppCompatActivity, file: File, forceChoose: Boolean = 
         return
     }
     when {
-        ext in imageExts -> launchImagePreview(activity, file)
-        ext in textExts -> launchTextPreview(activity, file)
+        isArchive && onOpenArchive != null -> onOpenArchive.invoke(file)
+        FileType.isImage(file) -> launchImagePreview(activity, file)
+        FileType.isText(file) -> launchTextEditor(activity, file)
+        else -> openFileWithSystem(activity, file)
     }
 }
 
-private fun launchTextPreview(activity: AppCompatActivity, file: File) {
-    val intent = android.content.Intent(activity, TextPreviewActivity::class.java).apply {
-        putExtra(TextPreviewActivity.EXTRA_FILE_PATH, file.absolutePath)
+private fun launchTextEditor(activity: AppCompatActivity, file: File) {
+    val intent = android.content.Intent(activity, TextEditorActivity::class.java).apply {
+        putExtra(TextEditorActivity.EXTRA_FILE_PATH, file.absolutePath)
     }
     activity.startActivity(intent)
 }
@@ -210,7 +262,7 @@ private fun launchImagePreview(activity: AppCompatActivity, file: File) {
 fun showDetails(activity: AppCompatActivity, file: File) {
     val rows = mutableListOf<Pair<String, String>>()
     rows.add(activity.getString(R.string.name_label) to file.name)
-    rows.add(activity.getString(R.string.path_label) to file.absolutePath)
+    rows.add(activity.getString(R.string.path_label) to (file.parentFile?.absolutePath ?: file.absolutePath))
     rows.add(activity.getString(R.string.type_label) to if (file.isDirectory) activity.getString(R.string.directory) else activity.getString(R.string.file))
     rows.add(activity.getString(R.string.size_label) to Formatter.formatFileSize(activity, file.length()))
     rows.add(activity.getString(R.string.modified_label) to SimpleDateFormat(activity.getString(R.string.date_format_details), Locale.getDefault()).format(Date(file.lastModified())))
@@ -262,9 +314,4 @@ fun showDetails(activity: AppCompatActivity, file: File) {
         .setTitle(R.string.properties)
         .setView(table)
         .setPositiveButton(R.string.ok, null).show()
-}
-
-fun File.getDisplayPath(): String {
-    val path = absolutePath
-    return if (path.length <= PATH_DISPLAY_MAX_LEN) path else "…" + path.takeLast(PATH_DISPLAY_MAX_LEN)
 }

@@ -15,17 +15,21 @@ class BackPressHandler(private val activity: AppCompatActivity) {
         multiSelectController: MultiSelectController,
         drawerLayout: DrawerLayout,
         browserController: FileBrowserController,
-        onExit: () -> Unit
+        onExit: () -> Unit,
+        onExitMultiSelect: () -> Unit
     ) {
         activity.onBackPressedDispatcher.addCallback(activity, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 if (multiSelectController.isInMultiSelectMode()) {
-                    multiSelectController.exitMultiSelect()
+                    onExitMultiSelect()
                     return
                 }
                 if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
                     drawerLayout.closeDrawer(GravityCompat.START)
                 } else if (browserController.canNavigateUp()) {
+                    if (multiSelectController.isInMultiSelectMode()) {
+                        onExitMultiSelect()
+                    }
                     browserController.navigateUp()
                 } else if (backPressedOnce) {
                     onExit()

@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">ZhuFiler</string>
-    <string name="working_directory">Working Directory</string>
+    <string name="working_directory">Current Directory</string>
     <string name="action_switch">Switch</string>
     <string name="directory_invalid">Invalid directory</string>
     <string name="recent">Recent</string>
@@ -27,7 +27,7 @@
     <string name="delete_message">Delete %s?</string>
     <string name="delete_failed">Delete failed</string>
     <string name="cannot_read">Cannot read</string>
-    <string name="open">External app</string>
+    <string name="open">System open</string>
     <string name="text">Text</string>
     <string name="image">Image</string>
     <string name="share_failed">Share failed: %s</string>
@@ -82,6 +82,9 @@
     <string name="add_bookmark">Add bookmark</string>
     <string name="remove_bookmark">Remove bookmark</string>
     <string name="remove">Remove</string>
+    <string name="target_not_writable">Target directory is not writable</string>
+    <string name="operation_failed">Operation failed: %s</string>
+    <string name="unknown_error">Unknown error</string>
     <string name="move_success">Successfully moved %d files</string>
     <string name="move_success_skip">Successfully moved %1$d files, skipped %2$d</string>
     <string name="copy_success">Successfully copied %d files</string>
@@ -89,4 +92,23 @@
     <string name="paste_result_partial">%1$d succeeded, %2$d failed</string>
     <string name="back_press_exit">Press back again to exit</string>
     <string name="copied_to_clipboard">Copied to clipboard</string>
+    <string name="save">Save</string>
+    <string name="save_success">Saved</string>
+    <string name="save_failed">Save failed: %s</string>
+    <string name="unsaved_changes">Save file?</string>
+    <string name="save_and_exit">Save and exit</string>
+    <string name="discard">Don\'t save</string>
+    <string name="editor_modified_label">Modified</string>
+    <string name="undo">Undo</string>
+    <string name="redo">Redo</string>
+    <string name="archive">Archive</string>
+    <string name="compress">Compress</string>
+    <string name="create_archive">Create archive</string>
+    <string name="enter_password">Enter password</string>
+    <string name="password">Password</string>
+    <string name="archive_open_failed">Cannot open archive</string>
+    <string name="archive_extract_failed">Extraction failed</string>
+    <string name="compress_success">Compression successful</string>
+    <string name="compress_failed">Compression failed</string>
+    <string name="wrong_password">Wrong password</string>
 </resources>

@@ -22,8 +22,8 @@ class FastScroller @JvmOverloads constructor(
 
     private var boundRecyclerView: RecyclerView? = null
 
-    private val trackWidthPx = dpToPx(context, 8)
-    private val thumbWidthPx = dpToPx(context, 8)
+    private val trackWidthPx = dpToPx(context, 10)
+    private val thumbWidthPx = dpToPx(context, 10)
     private val thumbMinHeightPx = dpToPx(context, 52)
 
     private val autoHideDelayMs = 1500L
@@ -31,6 +31,7 @@ class FastScroller @JvmOverloads constructor(
     private val hideDurationMs = 200L
 
     private var isShowing = false
+    private var isDragging = false
 
     private var scrollRange = 0
     private var scrollExtent = 0
@@ -41,7 +42,7 @@ class FastScroller @JvmOverloads constructor(
     private val thumbRect = RectF()
     private val trackRect = RectF()
     private val path = Path()
-    private val cornerRadius = dpToPx(context, 4).toFloat()
+    private val cornerRadius = dpToPx(context, 5).toFloat()
 
     private val handler = Handler(Looper.getMainLooper())
     private val autoHideRunnable = Runnable { hide() }
@@ -51,7 +52,7 @@ class FastScroller @JvmOverloads constructor(
             context, com.google.android.material.R.attr.colorPrimary
         )
         trackPaint.color = getThemeColor(
-            context, com.google.android.material.R.attr.colorPrimaryContainer
+            context, com.google.android.material.R.attr.colorSurfaceVariant
         )
         alpha = 0f
         translationX = trackWidthPx.toFloat()
@@ -141,13 +142,15 @@ class FastScroller @JvmOverloads constructor(
 
         val trackLeft = cx - trackWidthPx / 2f
         trackRect.set(trackLeft, 0f, trackLeft + trackWidthPx, h)
-        path.reset()
-        path.addRoundRect(
-            trackRect,
-            floatArrayOf(cornerRadius, cornerRadius, 0f, 0f, 0f, 0f, cornerRadius, cornerRadius),
-            Path.Direction.CW
-        )
-        canvas.drawPath(path, trackPaint)
+        if (isDragging) {
+            path.reset()
+            path.addRoundRect(
+                trackRect,
+                floatArrayOf(cornerRadius, cornerRadius, 0f, 0f, 0f, 0f, cornerRadius, cornerRadius),
+                Path.Direction.CW
+            )
+            canvas.drawPath(path, trackPaint)
+        }
 
         val top = thumbTop()
         val thumbH = thumbHeight()
@@ -168,6 +171,7 @@ class FastScroller @JvmOverloads constructor(
         if (range <= 0) return false
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
+                isDragging = true
                 show()
                 parent?.requestDisallowInterceptTouchEvent(true)
                 scrollTo(event.y, rv, range)
@@ -179,6 +183,7 @@ class FastScroller @JvmOverloads constructor(
                 return true
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                isDragging = false
                 invalidate()
                 handler.postDelayed(autoHideRunnable, autoHideDelayMs)
                 return true

@@ -15,7 +15,9 @@
         <com.google.android.material.appbar.MaterialToolbar
              android:layout_height="?attr/actionBarSize"
              android:layout_width="match_parent"
+             app:popupTheme="@style/ThemeOverlay.App.PopupMenu"
              app:subtitleTextColor="?attr/colorOnSurface"
+             app:subtitleTextAppearance="@style/ToolbarSubtitle"
              app:layout_constraintTop_toTopOf="parent"
              app:titleTextColor="?attr/colorOnSurface"
              android:id="@+id/toolbar">

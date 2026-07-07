@@ -76,6 +76,12 @@
       "grammar": "textmate/cpp/syntaxes/cpp.tmLanguage",
       "name": "cpp",
       "scopeName": "source.c++"
+    },
+    {
+      "grammar": "textmate/lua/syntaxes/lua.tmLanguage.json",
+      "name": "lua",
+      "scopeName": "source.lua",
+      "languageConfiguration": "textmate/lua/language-configuration.json"
     }
   ]
 }

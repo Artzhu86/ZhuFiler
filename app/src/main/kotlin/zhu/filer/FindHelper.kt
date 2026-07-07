@@ -25,6 +25,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.*
 import java.io.File
 import java.util.*
+import com.google.android.material.R as materialR
 
 class FindHelper(
     private val activity: AppCompatActivity,
@@ -109,7 +110,7 @@ class FindHelper(
         stopButton.visibility = View.VISIBLE
         stopButton.text = activity.getString(R.string.stop)
         stopButton.setBackgroundColor(getThemeColor(activity, android.R.attr.colorPrimary))
-        stopButton.setTextColor(Color.WHITE)
+        stopButton.setTextColor(getThemeColor(activity, materialR.attr.colorOnPrimary))
         stopButton.strokeWidth = 0
         stopButton.isEnabled = true
         stopButton.alpha = 1f
@@ -231,7 +232,7 @@ class FindHelper(
             textSize = 14f
             visibility = View.GONE
             setBackgroundColor(primaryColor)
-            setTextColor(Color.WHITE)
+            setTextColor(getThemeColor(activity, materialR.attr.colorOnPrimary))
             val lp = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
                 gravity = Gravity.END
                 rightMargin = dpToPx(activity, 16)

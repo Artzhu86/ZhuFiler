@@ -21,7 +21,9 @@ class FileOperationHelper(
             val result = withContext(Dispatchers.IO) {
                 runCatching {
                     val targetParent = target.parentFile
-                    if (targetParent != null && !targetParent.canWrite()) throw Exception("目标目录不可写")
+                    if (targetParent != null && !targetParent.canWrite()) {
+                        throw Exception(activity.getString(R.string.target_not_writable))
+                    }
                     if (overwrite && target.exists()) {
                         if (target.isDirectory) target.deleteRecursively() else target.delete()
                     }
@@ -45,7 +47,11 @@ class FileOperationHelper(
                 }
             }
             progressBar.isVisible = false
-            if (result.isFailure) toast(activity, "操作失败: ${result.exceptionOrNull()?.message ?: "未知错误"}")
+            if (result.isFailure) {
+                val errorMsg = result.exceptionOrNull()?.message ?: activity.getString(R.string.unknown_error)
+                val msg = activity.getString(R.string.operation_failed, errorMsg)
+                toast(activity, msg)
+            }
             onComplete()
         }
     }

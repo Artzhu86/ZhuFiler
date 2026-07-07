@@ -5,21 +5,21 @@
     android:layout_height="match_parent"
     android:background="?android:attr/colorBackground">
 
-    <com.github.chrisbanes.photoview.PhotoView
-        android:id="@+id/image_view"
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/image_pager"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scaleType="fitCenter"
-        android:contentDescription="@string/app_name" />
+        android:layout_height="match_parent" />
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="?attr/actionBarSize"
         android:layout_gravity="top"
-        android:minHeight="?attr/actionBarSize"
+        android:background="?attr/colorPrimaryContainer"
+        android:elevation="4dp"
+        android:visibility="visible"
         app:titleTextColor="?attr/colorOnSurface"
         app:subtitleTextColor="?attr/colorOnSurface"
-        app:navigationIconTint="?attr/colorOnSurface" />
+        app:subtitleTextAppearance="@style/ToolbarSubtitle" />
 
 </FrameLayout>

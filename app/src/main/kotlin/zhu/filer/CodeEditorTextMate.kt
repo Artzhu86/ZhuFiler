@@ -2,6 +2,7 @@ package zhu.filer
 
 import android.content.Context
 import android.content.res.Configuration
+import com.google.android.material.R as materialR
 import io.github.rosemoe.sora.lang.EmptyLanguage
 import io.github.rosemoe.sora.lang.Language
 import io.github.rosemoe.sora.langs.textmate.TextMateColorScheme
@@ -39,31 +40,42 @@ object CodeEditorTextMate {
         "cpp" to "source.c++",
         "hpp" to "source.c++",
         "cc" to "source.c++",
-        "cxx" to "source.c++"
+        "cxx" to "source.c++",
+        "lua" to "source.lua"
     )
 
     @Synchronized
     fun init(context: Context) {
-        if (initialized) return
-        try {
-            val assets = context.assets
-            FileProviderRegistry.getInstance().addFileProvider(AssetsFileResolver(assets))
+        if (!initialized) {
+            try {
+                FileProviderRegistry.getInstance().addFileProvider(
+                    AssetsFileResolver(context.applicationContext.assets)
+                )
 
-            loadTheme(context, LIGHT_THEME, "textmate/quietlight.json", false)
-            loadTheme(context, DARK_THEME, "textmate/darcula.json", true)
+                val themes = arrayOf("darcula", "ayu-dark", "quietlight", "solarized_dark")
+                val themeRegistry = ThemeRegistry.getInstance()
+                for (name in themes) {
+                    val path = "textmate/$name.json"
+                    val themeSource = IThemeSource.fromInputStream(
+                        FileProviderRegistry.getInstance().tryGetInputStream(path),
+                        path,
+                        null
+                    )
+                    themeRegistry.loadTheme(
+                        ThemeModel(themeSource, name).apply {
+                            if (name != "quietlight") {
+                                isDark = true
+                            }
+                        }
+                    )
+                }
 
-            GrammarRegistry.getInstance().loadGrammars("textmate/languages.json")
-        } catch (e: Exception) {
+                GrammarRegistry.getInstance().loadGrammars("textmate/languages.json")
+            } catch (e: Exception) {
+                android.util.Log.e("CodeEditorTextMate", "init failed", e)
+            }
+            initialized = true
         }
-        initialized = true
-        applyTheme(context)
-    }
-
-    private fun loadTheme(context: Context, name: String, assetPath: String, isDark: Boolean) {
-        val stream = context.assets.open(assetPath)
-        val themeSource = IThemeSource.fromInputStream(stream, "$name.json", null)
-        val model = ThemeModel(themeSource, name).apply { this.isDark = isDark }
-        ThemeRegistry.getInstance().loadTheme(model)
     }
 
     fun applyTheme(context: Context) {
@@ -76,15 +88,55 @@ object CodeEditorTextMate {
         val scope = extToScope[ext.lowercase()]
         if (scope != null) {
             return try {
-                TextMateLanguage.create(scope, false)
+                TextMateLanguage.create(scope, true)
             } catch (e: Exception) {
+                android.util.Log.e("CodeEditorTextMate", "languageForExtension failed: $scope", e)
                 EmptyLanguage()
             }
         }
         return EmptyLanguage()
     }
 
-    fun createColorScheme(): EditorColorScheme {
+    fun createColorScheme(context: Context): EditorColorScheme {
         return TextMateColorScheme.create(ThemeRegistry.getInstance())
+    }
+
+    fun applyEditorColors(editor: io.github.rosemoe.sora.widget.CodeEditor, context: Context) {
+        val scheme = editor.colorScheme
+        scheme.setColor(
+            EditorColorScheme.LINE_NUMBER_BACKGROUND,
+            getThemeColor(context, materialR.attr.colorSurfaceVariant)
+        )
+        scheme.setColor(
+            EditorColorScheme.LINE_DIVIDER,
+            getThemeColor(context, materialR.attr.colorOutlineVariant)
+        )
+        scheme.setColor(
+            EditorColorScheme.LINE_NUMBER,
+            getThemeColor(context, materialR.attr.colorOnSurfaceVariant)
+        )
+        scheme.setColor(
+            EditorColorScheme.LINE_NUMBER_CURRENT,
+            getThemeColor(context, materialR.attr.colorPrimary)
+        )
+        scheme.setColor(
+            EditorColorScheme.WHOLE_BACKGROUND,
+            getThemeColor(context, android.R.attr.colorBackground)
+        )
+        scheme.setColor(
+            EditorColorScheme.CURRENT_LINE,
+            getThemeColor(context, materialR.attr.colorPrimaryContainer)
+        )
+        scheme.setColor(
+            EditorColorScheme.SELECTION_INSERT,
+            getThemeColor(context, materialR.attr.colorPrimary)
+        )
+        scheme.setColor(
+            EditorColorScheme.MATCHED_TEXT_BACKGROUND,
+            getThemeColor(context, materialR.attr.colorPrimaryContainer)
+        )
+        val guideBase = getThemeColor(context, materialR.attr.colorOnSurfaceVariant) and 0x00FFFFFF
+        scheme.setColor(EditorColorScheme.BLOCK_LINE, guideBase or 0x33000000)
+        scheme.setColor(EditorColorScheme.BLOCK_LINE_CURRENT, guideBase or 0x99000000.toInt())
     }
 }

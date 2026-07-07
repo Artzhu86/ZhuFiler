@@ -19,7 +19,8 @@ class MultiSelectController(
     private val progressBar: android.widget.ProgressBar,
     private val clipboardManager: ClipboardManager,
     private val onClipboardChanged: () -> Unit,
-    private val onExitMultiSelect: () -> Unit = {}
+    private val onExitMultiSelect: () -> Unit = {},
+    private val onCompress: ((List<File>) -> Unit)? = null
 ) {
 
     private var isMultiSelect = false
@@ -67,7 +68,8 @@ class MultiSelectController(
             activity.getString(R.string.delete),
             activity.getString(R.string.copy),
             activity.getString(R.string.move),
-            activity.getString(R.string.share)
+            activity.getString(R.string.share),
+            activity.getString(R.string.compress)
         )
         MaterialAlertDialogBuilder(activity)
             .setTitle(activity.getString(R.string.batch_operation, selected.size))
@@ -77,6 +79,10 @@ class MultiSelectController(
                     1 -> batchCopyOrMove(selected, isMove = false)
                     2 -> batchCopyOrMove(selected, isMove = true)
                     3 -> batchShare(selected)
+                    4 -> {
+                        onCompress?.invoke(selected)
+                        exitMultiSelect()
+                    }
                 }
             }
             .setNegativeButton(R.string.cancel, null)

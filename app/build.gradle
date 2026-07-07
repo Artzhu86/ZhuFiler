@@ -11,19 +11,16 @@ android {
         applicationId 'zhu.filer'
         minSdk 25
         targetSdk 36
-        versionCode 10
-        versionName "1.9"
+        versionCode 11
+        versionName "2.0"
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+        ndk {
+            abiFilters 'arm64-v8a'
+        }
     }
 
     buildFeatures {
         viewBinding true
-    }
-
-    packaging {
-        resources {
-            excludes += 'tables/**'
-        }
     }
 
     signingConfigs {
@@ -67,6 +64,14 @@ dependencies {
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
 
     implementation 'com.github.bumptech.glide:glide:4.16.0'
+
+    implementation 'io.getstream:photoview:1.0.3'
+
+    implementation 'com.sorrowblue.sevenzipjbinding:7-Zip-JBinding-4Android:16.02-2.03'
+
+    implementation 'net.lingala.zip4j:zip4j:2.11.5'
+
+    implementation 'org.tukaani:xz:1.10'
 
     implementation platform('io.github.rosemoe:editor-bom:0.23.7')
     implementation 'io.github.rosemoe:editor'
