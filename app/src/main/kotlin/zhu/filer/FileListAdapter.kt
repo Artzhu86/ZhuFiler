@@ -242,7 +242,10 @@ class FileListAdapter(
             setSingleLine(true)
             maxLines = 1
             ellipsize = TextUtils.TruncateAt.MIDDLE
-            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+            layoutParams = LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
         }
         nameRow.addView(nameTv)
 
@@ -251,7 +254,6 @@ class FileListAdapter(
             setSingleLine(true)
             maxLines = 1
             alpha = 0.8f
-            setPadding(dpToPx(context, 6), 0, 0, 0)
             layoutParams = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
@@ -369,7 +371,7 @@ class FileListAdapter(
         holder.encryptedTv.visibility = if (item.encrypted) View.VISIBLE else View.GONE
 
         if (item.apkAppName != null) {
-            holder.apkNameTv.text = item.apkAppName
+            holder.apkNameTv.text = "\t\t${item.apkAppName}"
             holder.apkNameTv.visibility = View.VISIBLE
         } else {
             holder.apkNameTv.visibility = View.GONE
