@@ -24,6 +24,9 @@ object FileType {
     fun isArchive(file: File): Boolean = extOf(file.name) in archiveExts
     fun isArchive(name: String): Boolean = extOf(name) in archiveExts
 
+    fun isApk(file: File): Boolean = extOf(file.name) == "apk"
+    fun isApk(name: String): Boolean = extOf(name) == "apk"
+
     fun getIconRes(file: File): Int = getIconRes(file.name, file.isDirectory)
 
     fun getIconRes(name: String, isDirectory: Boolean): Int {

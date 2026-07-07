@@ -90,7 +90,37 @@ private fun getToolbarTitleTextView(toolbar: Toolbar): TextView? {
 fun createFileItem(context: Context, file: File): FileItem {
     val timeStr = SimpleDateFormat(context.getString(R.string.date_format), Locale.getDefault()).format(Date(file.lastModified()))
     val sizeStr = Formatter.formatFileSize(context, file.length())
-    return FileItem(file, file.name, FileType.getIconRes(file), "$timeStr  $sizeStr")
+    val subtitle = if (FileType.isApk(file)) {
+        val appName = getApkAppName(context, file)
+        if (appName != null) "$appName  $timeStr  $sizeStr" else "$timeStr  $sizeStr"
+    } else {
+        "$timeStr  $sizeStr"
+    }
+    return FileItem(file, file.name, FileType.getIconRes(file), subtitle)
+}
+
+fun getApkAppName(context: Context, file: File): String? {
+    return try {
+        val packageInfo = context.packageManager.getPackageArchiveInfo(file.absolutePath, 0)
+        packageInfo?.applicationInfo?.let { appInfo ->
+            appInfo.nonLocalizedLabel?.toString() ?: packageInfo.packageName
+        }
+    } catch (e: Exception) {
+        null
+    }
+}
+
+fun getApkIcon(context: Context, file: File): android.graphics.drawable.Drawable? {
+    return try {
+        val packageInfo = context.packageManager.getPackageArchiveInfo(file.absolutePath, 0)
+        packageInfo?.applicationInfo?.let { appInfo ->
+            appInfo.sourceDir = file.absolutePath
+            appInfo.publicSourceDir = file.absolutePath
+            context.packageManager.getApplicationIcon(appInfo)
+        }
+    } catch (e: Exception) {
+        null
+    }
 }
 
 fun toast(context: Context, msg: String, duration: Int = Toast.LENGTH_SHORT) {
@@ -221,6 +251,7 @@ fun previewFile(
             activity.getString(R.string.image)
         )
         if (isArchive) options.add(activity.getString(R.string.archive))
+        if (FileType.isApk(file)) options.add(activity.getString(R.string.install))
         val dialog = MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.open_with)
             .setItems(options.toTypedArray()) { _, which ->
@@ -228,7 +259,14 @@ fun previewFile(
                     0 -> openFileWithSystem(activity, file)
                     1 -> launchTextEditor(activity, file)
                     2 -> launchImagePreview(activity, file)
-                    3 -> onOpenArchive?.invoke(file)
+                    3 -> {
+                        if (isArchive) onOpenArchive?.invoke(file)
+                        else if (FileType.isApk(file)) installApk(activity, file)
+                    }
+                    4 -> {
+                        if (FileType.isApk(file)) installApk(activity, file)
+                        else onOpenArchive?.invoke(file)
+                    }
                 }
             }
             .setNegativeButton(R.string.cancel, null)
@@ -239,6 +277,7 @@ fun previewFile(
     }
     when {
         isArchive && onOpenArchive != null -> onOpenArchive.invoke(file)
+        FileType.isApk(file) -> installApk(activity, file)
         FileType.isImage(file) -> launchImagePreview(activity, file)
         FileType.isText(file) -> launchTextEditor(activity, file)
         else -> openFileWithSystem(activity, file)
@@ -257,6 +296,24 @@ private fun launchImagePreview(activity: AppCompatActivity, file: File) {
         putExtra(ImagePreviewActivity.EXTRA_FILE_PATH, file.absolutePath)
     }
     activity.startActivity(intent)
+}
+
+private fun installApk(activity: AppCompatActivity, file: File) {
+    try {
+        val uri = FileProvider.getUriForFile(
+            activity,
+            "${activity.packageName}.fileprovider",
+            file
+        )
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(uri, "application/vnd.android.package-archive")
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        activity.startActivity(intent)
+    } catch (e: Exception) {
+        toast(activity, activity.getString(R.string.open_failed, e.message))
+    }
 }
 
 fun showDetails(activity: AppCompatActivity, file: File) {

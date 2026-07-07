@@ -33,7 +33,6 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.regex.Pattern
 import zhu.filer.databinding.ActivityTextEditorBinding
-import zhu.filer.databinding.DialogFindReplaceBinding
 import zhu.filer.databinding.DialogSettingsBinding
 
 import com.google.android.material.R as materialR
@@ -49,9 +48,10 @@ class TextEditorActivity : AppCompatActivity() {
     private var isModified = false
     private var initialContent: String = ""
 
-    private var findDialogBinding: DialogFindReplaceBinding? = null
     private var currentMatchIndex = -1
     private var matchPositions = mutableListOf<Pair<Int, Int>>()
+    private var findBarVisible = false
+    private var detectedEncoding: String = "UTF-8"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -123,8 +123,11 @@ class TextEditorActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             val content = withContext(Dispatchers.IO) {
-                runCatching { file.bufferedReader().use { it.readText() } }
-                    .getOrDefault(getString(R.string.read_failed))
+                runCatching {
+                    detectedEncoding = detectEncoding(file)
+                    val charset = charset(detectedEncoding)
+                    file.bufferedReader(charset).use { it.readText() }
+                }.getOrDefault(getString(R.string.read_failed))
             }
 
             initialContent = content
@@ -164,13 +167,67 @@ class TextEditorActivity : AppCompatActivity() {
         binding.editor.isHighlightCurrentLine = EditorSettings.isHighlightLine(this)
     }
 
+    private fun detectEncoding(file: File): String {
+        val bytes = file.inputStream().use { input ->
+            val buffer = ByteArray(8192)
+            val read = input.read(buffer)
+            if (read <= 0) return@use ByteArray(0)
+            buffer.copyOf(read)
+        }
+        if (bytes.isEmpty()) return "UTF-8"
+
+        if (bytes.size >= 3 && bytes[0] == 0xEF.toByte() && bytes[1] == 0xBB.toByte() && bytes[2] == 0xBF.toByte()) {
+            return "UTF-8"
+        }
+        if (bytes.size >= 2 && bytes[0] == 0xFF.toByte() && bytes[1] == 0xFE.toByte()) {
+            return "UTF-16LE"
+        }
+        if (bytes.size >= 2 && bytes[0] == 0xFE.toByte() && bytes[1] == 0xFF.toByte()) {
+            return "UTF-16BE"
+        }
+
+        var isValidUtf8 = true
+        var hasHighBytes = false
+        var i = 0
+        while (i < bytes.size) {
+            val b = bytes[i].toInt() and 0xFF
+            when {
+                b <= 0x7F -> { i++; continue }
+                b in 0xC2..0xDF -> {
+                    hasHighBytes = true
+                    if (i + 1 >= bytes.size || (bytes[i + 1].toInt() and 0xC0) != 0x80) { isValidUtf8 = false; break }
+                    i += 2
+                }
+                b in 0xE0..0xEF -> {
+                    hasHighBytes = true
+                    if (i + 2 >= bytes.size || (bytes[i + 1].toInt() and 0xC0) != 0x80 || (bytes[i + 2].toInt() and 0xC0) != 0x80) { isValidUtf8 = false; break }
+                    i += 3
+                }
+                b in 0xF0..0xF4 -> {
+                    hasHighBytes = true
+                    if (i + 3 >= bytes.size || (bytes[i + 1].toInt() and 0xC0) != 0x80 || (bytes[i + 2].toInt() and 0xC0) != 0x80 || (bytes[i + 3].toInt() and 0xC0) != 0x80) { isValidUtf8 = false; break }
+                    i += 4
+                }
+                else -> { isValidUtf8 = false; break }
+            }
+        }
+        if (isValidUtf8 && hasHighBytes) return "UTF-8"
+        if (isValidUtf8 && !hasHighBytes) return "UTF-8"
+
+        val hasNullPair = bytes.size >= 2 && ((bytes[0] == 0x00.toByte() && bytes[1] == 0x00.toByte()) ||
+            (bytes.size >= 4 && bytes[2] == 0x00.toByte() && bytes[3] == 0x00.toByte()))
+        if (!hasNullPair) return "GBK"
+
+        return "UTF-16LE"
+    }
+
     private fun updateSubtitle() {
         val cursor = binding.editor.cursor
         val line = cursor.leftLine + 1
         val col = cursor.leftColumn + 1
         val selected = if (cursor.isSelected()) cursor.right - cursor.left else 0
         val selectedTag = if (selected > 0) " ($selected)" else ""
-        supportActionBar?.subtitle = "$line:$col$selectedTag"
+        supportActionBar?.subtitle = "$line:$col$selectedTag  $detectedEncoding"
         applyToolbarTitleName(binding.toolbar, if (isModified) "*${file.name}" else file.name)
     }
 
@@ -214,71 +271,83 @@ class TextEditorActivity : AppCompatActivity() {
             lp.gravity = Gravity.CENTER_VERTICAL
             tv.layoutParams = lp
             tv.setOnClickListener {
-                binding.editor.insertText(insert, insert.length)
+                val textToInsert = if (insert == "\t") {
+                    " ".repeat(EditorSettings.getTabSize(this))
+                } else {
+                    insert
+                }
+                binding.editor.insertText(textToInsert, textToInsert.length)
             }
             container.addView(tv)
         }
     }
 
-    private fun showFindReplaceDialog() {
-        findDialogBinding = DialogFindReplaceBinding.inflate(layoutInflater)
+    private fun showFindBar() {
+        if (findBarVisible) return
+        findBarVisible = true
+        val fb = binding.findBarContainer
+        fb.findBar.visibility = android.view.View.VISIBLE
 
-        val dialog = MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.find)
-            .setView(findDialogBinding!!.root)
-            .setNegativeButton(R.string.close, null)
-            .create()
+        fb.findInput.requestFocus()
+        val imm = getSystemService(INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+        imm.showSoftInput(fb.findInput, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT)
 
-        dialog.show()
-
-        val findInput = findDialogBinding!!.findInput
-        val replaceInput = findDialogBinding!!.replaceInput
-        val resultText = findDialogBinding!!.resultText
-        val regexSwitch = findDialogBinding!!.regexSwitch
-        val caseSensitiveSwitch = findDialogBinding!!.caseSensitiveSwitch
-        val wholeWordSwitch = findDialogBinding!!.wholeWordSwitch
-        val btnFindNext = findDialogBinding!!.btnFindNext
-        val btnFindPrev = findDialogBinding!!.btnFindPrev
-        val btnReplace = findDialogBinding!!.btnReplace
-        val btnReplaceAll = findDialogBinding!!.btnReplaceAll
-
-        fun doSearch(): Boolean {
-            return performSearch(findInput, resultText, regexSwitch, caseSensitiveSwitch, wholeWordSwitch)
-        }
-
-        findInput.addTextChangedListener(object : TextWatcher {
+        fb.findInput.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                doSearch()
+                doFindBarSearch()
             }
             override fun afterTextChanged(s: Editable?) {}
         })
 
-        regexSwitch.setOnCheckedChangeListener { _, _ -> doSearch() }
-        caseSensitiveSwitch.setOnCheckedChangeListener { _, _ -> doSearch() }
-        wholeWordSwitch.setOnCheckedChangeListener { _, _ -> doSearch() }
+        fb.regexSwitch.setOnCheckedChangeListener { _, _ -> doFindBarSearch() }
+        fb.caseSensitiveSwitch.setOnCheckedChangeListener { _, _ -> doFindBarSearch() }
+        fb.wholeWordSwitch.setOnCheckedChangeListener { _, _ -> doFindBarSearch() }
 
-        btnFindNext.setOnClickListener {
-            if (doSearch()) goToNextMatch()
+        fb.btnFindNext.setOnClickListener {
+            if (doFindBarSearch()) goToNextMatch()
         }
 
-        btnFindPrev.setOnClickListener {
-            if (doSearch()) goToPreviousMatch()
+        fb.btnFindPrev.setOnClickListener {
+            if (doFindBarSearch()) goToPreviousMatch()
         }
 
-        btnReplace.setOnClickListener {
-            if (matchPositions.isEmpty() && !doSearch()) return@setOnClickListener
+        fb.btnExpandReplace.setOnClickListener {
+            fb.replaceBar.visibility = if (fb.replaceBar.visibility == android.view.View.GONE)
+                android.view.View.VISIBLE else android.view.View.GONE
+        }
+
+        fb.btnCloseFind.setOnClickListener { hideFindBar() }
+
+        fb.btnReplace.setOnClickListener {
+            if (matchPositions.isEmpty() && !doFindBarSearch()) return@setOnClickListener
             if (currentMatchIndex < 0 || currentMatchIndex >= matchPositions.size) {
-                if (doSearch()) goToNextMatch()
+                if (doFindBarSearch()) goToNextMatch()
             }
             replaceCurrentMatch()
         }
 
-        btnReplaceAll.setOnClickListener {
-            if (matchPositions.isEmpty() && !doSearch()) return@setOnClickListener
+        fb.btnReplaceAll.setOnClickListener {
+            if (matchPositions.isEmpty() && !doFindBarSearch()) return@setOnClickListener
             replaceAllMatches()
-            doSearch()
+            doFindBarSearch()
         }
+    }
+
+    private fun hideFindBar() {
+        if (!findBarVisible) return
+        findBarVisible = false
+        binding.findBarContainer.findBar.visibility = android.view.View.GONE
+        matchPositions.clear()
+        currentMatchIndex = -1
+        binding.findBarContainer.resultText.text = ""
+        val imm = getSystemService(INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+        imm.hideSoftInputFromWindow(binding.findBarContainer.findInput.windowToken, 0)
+    }
+
+    private fun doFindBarSearch(): Boolean {
+        val fb = binding.findBarContainer
+        return performSearch(fb.findInput, fb.resultText, fb.regexSwitch, fb.caseSensitiveSwitch, fb.wholeWordSwitch)
     }
 
     private fun performSearch(
@@ -357,7 +426,8 @@ class TextEditorActivity : AppCompatActivity() {
     private fun replaceCurrentMatch() {
         if (currentMatchIndex < 0 || currentMatchIndex >= matchPositions.size) return
 
-        val replaceText = findDialogBinding?.replaceInput?.text.toString()
+        val fb = binding.findBarContainer
+        val replaceText = fb.replaceInput.text.toString()
         val (start, end) = matchPositions[currentMatchIndex]
         val indexer = binding.editor.text.getIndexer()
         val startPos = indexer.getCharPosition(start)
@@ -366,20 +436,20 @@ class TextEditorActivity : AppCompatActivity() {
         binding.editor.text.delete(startPos.line, startPos.column, endPos.line, endPos.column)
         binding.editor.text.insert(startPos.line, startPos.column, replaceText)
 
-        matchPositions.removeAt(currentMatchIndex)
-        if (currentMatchIndex >= matchPositions.size) {
-            currentMatchIndex = 0
-        }
+        matchPositions.clear()
+        currentMatchIndex = -1
+        performSearch(fb.findInput, fb.resultText, fb.regexSwitch, fb.caseSensitiveSwitch, fb.wholeWordSwitch)
     }
 
     private fun replaceAllMatches() {
         if (matchPositions.isEmpty()) return
 
-        val query = findDialogBinding?.findInput?.text.toString()
-        val replaceText = findDialogBinding?.replaceInput?.text.toString()
-        val isRegex = findDialogBinding?.regexSwitch?.isChecked ?: false
-        val isCaseSensitive = findDialogBinding?.caseSensitiveSwitch?.isChecked ?: false
-        val isWholeWord = findDialogBinding?.wholeWordSwitch?.isChecked ?: false
+        val fb = binding.findBarContainer
+        val query = fb.findInput.text.toString()
+        val replaceText = fb.replaceInput.text.toString()
+        val isRegex = fb.regexSwitch.isChecked
+        val isCaseSensitive = fb.caseSensitiveSwitch.isChecked
+        val isWholeWord = fb.wholeWordSwitch.isChecked
 
         val text = binding.editor.text.toString()
         val result = try {
@@ -488,23 +558,26 @@ class TextEditorActivity : AppCompatActivity() {
             }
         }
 
-        val editorThemes = listOf("darcula", "ayu-dark", "quietlight", "solarized_dark")
+        val editorThemeKeys = listOf("darcula", "ayu-dark", "quietlight", "solarized_dark")
+        val editorThemeNames = listOf("Darcula", "Ayu Dark", "Quiet Light", "Solarized Dark")
         val currentEditorTheme = EditorSettings.getEditorTheme(this)
-        val themeAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, editorThemes)
+        val themeAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, editorThemeNames)
         settingsBinding.editorThemeSpinner.adapter = themeAdapter
-        val currentIndex = editorThemes.indexOf(currentEditorTheme)
+        val currentIndex = editorThemeKeys.indexOf(currentEditorTheme)
         if (currentIndex >= 0) {
             settingsBinding.editorThemeSpinner.setSelection(currentIndex)
         }
 
-        settingsBinding.editorThemeSpinner.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
-                val selectedTheme = editorThemes[position]
-                EditorSettings.setEditorTheme(this@TextEditorActivity, selectedTheme)
-                applyEditorTheme(selectedTheme)
-            }
+        settingsBinding.editorThemeSpinner.post {
+            settingsBinding.editorThemeSpinner.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
+                    val selectedTheme = editorThemeKeys[position]
+                    EditorSettings.setEditorTheme(this@TextEditorActivity, selectedTheme)
+                    applyEditorTheme(selectedTheme)
+                }
 
-            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+                override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+            }
         }
 
         MaterialAlertDialogBuilder(this)
@@ -534,7 +607,7 @@ class TextEditorActivity : AppCompatActivity() {
     private fun saveFile(): Boolean {
         return try {
             val content = binding.editor.text.toString()
-            file.writeText(content)
+            file.writer(charset(detectedEncoding)).use { it.write(content) }
             initialContent = content
             isModified = false
             updateSubtitle()
@@ -548,13 +621,17 @@ class TextEditorActivity : AppCompatActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menu.add(Menu.NONE, Menu.FIRST, Menu.NONE, getString(R.string.find))
-            .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
+            .setIcon(R.drawable.outline_search_24)
+            .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
         menu.add(Menu.NONE, Menu.FIRST + 1, Menu.NONE, getString(R.string.save))
-            .setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
+            .setIcon(R.drawable.outline_save_24)
+            .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
         menu.add(Menu.NONE, Menu.FIRST + 2, Menu.NONE, getString(R.string.undo))
-            .setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
+            .setIcon(R.drawable.outline_undo_24)
+            .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
         menu.add(Menu.NONE, Menu.FIRST + 3, Menu.NONE, getString(R.string.redo))
-            .setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
+            .setIcon(R.drawable.outline_redo_24)
+            .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
         menu.add(Menu.NONE, Menu.FIRST + 4, Menu.NONE, getString(R.string.settings))
             .setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
         return true
@@ -562,7 +639,7 @@ class TextEditorActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            Menu.FIRST -> showFindReplaceDialog()
+            Menu.FIRST -> showFindBar()
             Menu.FIRST + 1 -> saveFile()
             Menu.FIRST + 2 -> binding.editor.undo()
             Menu.FIRST + 3 -> binding.editor.redo()
@@ -577,6 +654,10 @@ class TextEditorActivity : AppCompatActivity() {
 
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
+        if (findBarVisible) {
+            hideFindBar()
+            return
+        }
         if (isModified) {
             if (EditorSettings.isAutoSave(this)) {
                 saveFile()

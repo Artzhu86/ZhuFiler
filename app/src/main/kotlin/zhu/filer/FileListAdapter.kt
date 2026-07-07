@@ -336,7 +336,17 @@ class FileListAdapter(
             }
             holder.iconIv.scaleType = ImageView.ScaleType.FIT_CENTER
             Glide.with(holder.iconIv.context).clear(holder.iconIv)
-            holder.iconIv.setImageResource(item.iconRes)
+
+            if (FileType.isApk(item.file) && item.entryPath == null) {
+                val apkIcon = getApkIcon(holder.iconIv.context, item.file)
+                if (apkIcon != null) {
+                    holder.iconIv.setImageDrawable(apkIcon)
+                } else {
+                    holder.iconIv.setImageResource(item.iconRes)
+                }
+            } else {
+                holder.iconIv.setImageResource(item.iconRes)
+            }
         }
 
         holder.nameTv.text = item.displayName

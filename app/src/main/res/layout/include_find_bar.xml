@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/findBar"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:visibility="gone"
+    android:background="?attr/colorSurface"
+    android:elevation="2dp"
+    android:paddingStart="12dp"
+    android:paddingEnd="12dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="4dp">
+
+    <!-- Find row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="@string/find"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/findInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:textSize="14sp" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <TextView
+            android:id="@+id/resultText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceLabelSmall"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="4dp"
+            android:minWidth="48dp"
+            android:gravity="center" />
+
+        <ImageButton
+            android:id="@+id/btnFindPrev"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/outline_keyboard_arrow_up_24"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/find_previous"
+            android:scaleType="centerInside" />
+
+        <ImageButton
+            android:id="@+id/btnFindNext"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/outline_keyboard_arrow_down_24"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/find_next"
+            android:scaleType="centerInside" />
+
+        <ImageButton
+            android:id="@+id/btnExpandReplace"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:src="@drawable/outline_swap_vert_24"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/replace"
+            android:scaleType="centerInside"
+            android:paddingStart="6dp"
+            android:paddingEnd="6dp"
+            android:layout_marginStart="4dp" />
+
+        <ImageButton
+            android:id="@+id/btnCloseFind"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/outline_close_24"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/close"
+            android:scaleType="centerInside" />
+
+    </LinearLayout>
+
+    <!-- Replace row (initially hidden) -->
+    <LinearLayout
+        android:id="@+id/replaceBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="4dp"
+        android:visibility="gone">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="@string/replace"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/replaceInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:textSize="14sp" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnReplace"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="@string/replace"
+            android:textSize="12sp"
+            android:minWidth="0dp"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:layout_marginStart="4dp"
+            style="@style/Widget.MaterialComponents.Button.TextButton" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnReplaceAll"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="@string/replace_all"
+            android:textSize="12sp"
+            android:minWidth="0dp"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:layout_marginStart="2dp"
+            style="@style/Widget.MaterialComponents.Button.TextButton" />
+
+    </LinearLayout>
+
+    <!-- Options row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="2dp">
+
+        <CheckBox
+            android:id="@+id/regexSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/regex"
+            android:textSize="11sp"
+            android:minHeight="0dp"
+            android:paddingEnd="8dp" />
+
+        <CheckBox
+            android:id="@+id/caseSensitiveSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/case_sensitive"
+            android:textSize="11sp"
+            android:minHeight="0dp"
+            android:paddingEnd="8dp" />
+
+        <CheckBox
+            android:id="@+id/wholeWordSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/whole_word"
+            android:textSize="11sp"
+            android:minHeight="0dp" />
+
+    </LinearLayout>
+
+</LinearLayout>
