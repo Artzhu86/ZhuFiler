@@ -83,14 +83,14 @@ main.innerHTML = `
           <mdui-button-icon class="code-copy-btn" data-copy-target="cmd-1" icon="content_copy" variant="standard" aria-label="复制"></mdui-button-icon>
           <div class="zf-cmd-content">
             <div class="zf-cmd-label">下载 APK</div>
-            <pre class="zf-cmd-code" id="cmd-1"><code>curl -LO https://github.com/Artzhu86/ZhuFiler/releases/latest/download/ZhuFiler.apk</code></pre>
+            <pre class="zf-cmd-code" id="cmd-1"><code>curl -LO https://github.com/Artzhu86/ZhuFiler/releases/latest/download/ZhuFiler-v2.1.apk</code></pre>
           </div>
         </div>
         <div class="zf-cmd-row">
           <mdui-button-icon class="code-copy-btn" data-copy-target="cmd-2" icon="content_copy" variant="standard" aria-label="复制"></mdui-button-icon>
           <div class="zf-cmd-content">
             <div class="zf-cmd-label">安装到设备</div>
-            <pre class="zf-cmd-code" id="cmd-2"><code>adb install ZhuFiler.apk</code></pre>
+            <pre class="zf-cmd-code" id="cmd-2"><code>adb install ZhuFiler-v2.1.apk</code></pre>
           </div>
         </div>
       </div>
