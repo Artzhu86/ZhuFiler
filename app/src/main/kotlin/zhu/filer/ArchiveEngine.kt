@@ -172,7 +172,10 @@ object ArchiveEngine {
         password: String?,
         onProgress: ((current: Int, total: Int, currentFile: String) -> Unit)? = null
     ): Boolean {
-        val items = collectSources(sources, baseDir)
+        val allItems = collectSources(sources, baseDir)
+        if (allItems.isEmpty()) return false
+        val outputCanonical = outputFile.canonicalPath
+        val items = allItems.filter { it.file.canonicalPath != outputCanonical }
         if (items.isEmpty()) return false
         outputFile.parentFile?.mkdirs()
         if (outputFile.exists()) outputFile.delete()
@@ -206,10 +209,10 @@ object ArchiveEngine {
         }
         for ((index, item) in items.withIndex()) {
             if (item.isDirectory) {
-                val folderParams = ZipParameters(params).apply {
-                    isIncludeRootFolder = false
+                val dirParams = ZipParameters(params).apply {
+                    fileNameInZip = item.pathInArchive + "/"
                 }
-                zipFile.addFolder(item.file, folderParams)
+                zipFile.addFile(item.file, dirParams)
             } else {
                 val fileParams = ZipParameters(params).apply {
                     fileNameInZip = item.pathInArchive
@@ -355,11 +358,12 @@ object ArchiveEngine {
         ): IOutItemAllFormats {
             val it = items[index]
             val out = outItemFactory.createOutItem()
-            out.setPropertyPath(it.pathInArchive)
             if (it.isDirectory) {
-                out.setPropertyAttributes(PropID.AttributesBitMask.FILE_ATTRIBUTE_DIRECTORY)
+                out.setPropertyPath(it.pathInArchive + "/")
+                out.setPropertyIsDir(true)
                 out.setDataSize(0L)
             } else {
+                out.setPropertyPath(it.pathInArchive)
                 out.setDataSize(it.file.length())
             }
             return out
