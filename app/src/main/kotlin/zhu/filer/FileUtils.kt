@@ -91,20 +91,23 @@ private fun getToolbarTitleTextView(toolbar: Toolbar): TextView? {
 fun createFileItem(context: Context, file: File): FileItem {
     val timeStr = SimpleDateFormat(context.getString(R.string.date_format), Locale.getDefault()).format(Date(file.lastModified()))
     val sizeStr = Formatter.formatFileSize(context, file.length())
-    val subtitle = if (FileType.isApk(file)) {
-        val appName = getApkAppName(context, file)
-        if (appName != null) "$appName  $timeStr  $sizeStr" else "$timeStr  $sizeStr"
-    } else {
-        "$timeStr  $sizeStr"
-    }
-    return FileItem(file, file.name, FileType.getIconRes(file), subtitle)
+    val subtitle = "$timeStr  $sizeStr"
+    val apkAppName = if (FileType.isApk(file)) getApkAppName(context, file) else null
+    return FileItem(file, file.name, FileType.getIconRes(file), subtitle, apkAppName = apkAppName)
 }
 
 fun getApkAppName(context: Context, file: File): String? {
     return try {
         val packageInfo = context.packageManager.getPackageArchiveInfo(file.absolutePath, 0)
         packageInfo?.applicationInfo?.let { appInfo ->
-            appInfo.nonLocalizedLabel?.toString() ?: packageInfo.packageName
+            appInfo.sourceDir = file.absolutePath
+            appInfo.publicSourceDir = file.absolutePath
+            val label = appInfo.loadLabel(context.packageManager)
+            if (label != null && label.toString() != packageInfo.packageName) {
+                label.toString()
+            } else {
+                null
+            }
         }
     } catch (e: Exception) {
         null

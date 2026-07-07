@@ -33,7 +33,8 @@ data class FileItem(
     val isDirectory: Boolean = file.isDirectory,
     val encrypted: Boolean = false,
     val entryPath: String? = null,
-    val size: Long = file.length()
+    val size: Long = file.length(),
+    val apkAppName: String? = null
 )
 
 class FileListAdapter(
@@ -245,6 +246,20 @@ class FileListAdapter(
         }
         nameRow.addView(nameTv)
 
+        val apkNameTv = TextView(context).apply {
+            textSize = 12f
+            setSingleLine(true)
+            maxLines = 1
+            alpha = 0.8f
+            setPadding(dpToPx(context, 6), 0, 0, 0)
+            layoutParams = LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+            visibility = View.GONE
+        }
+        nameRow.addView(apkNameTv)
+
         val encryptedTv = TextView(context).apply {
             text = "*"
             textSize = 11f
@@ -272,7 +287,7 @@ class FileListAdapter(
 
         container.addView(nameContainer)
 
-        return ViewHolder(card, container, iconIv, nameTv, subtitleTv, encryptedTv)
+        return ViewHolder(card, container, iconIv, nameTv, apkNameTv, subtitleTv, encryptedTv)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -352,6 +367,13 @@ class FileListAdapter(
         holder.nameTv.text = item.displayName
         holder.subtitleTv.text = item.subtitle
         holder.encryptedTv.visibility = if (item.encrypted) View.VISIBLE else View.GONE
+
+        if (item.apkAppName != null) {
+            holder.apkNameTv.text = item.apkAppName
+            holder.apkNameTv.visibility = View.VISIBLE
+        } else {
+            holder.apkNameTv.visibility = View.GONE
+        }
 
         val isHighlight = position == highlightPosition || position == blinkPosition
         val isSel = isSelected(position)
@@ -471,6 +493,7 @@ class FileListAdapter(
         val container: LinearLayout,
         val iconIv: ImageView,
         val nameTv: TextView,
+        val apkNameTv: TextView,
         val subtitleTv: TextView,
         val encryptedTv: TextView
     ) : RecyclerView.ViewHolder(itemView) {
