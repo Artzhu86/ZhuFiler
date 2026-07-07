@@ -10,7 +10,9 @@ import android.view.ViewGroup
 import android.widget.CheckedTextView
 import android.widget.LinearLayout
 import android.widget.ListView
+import android.widget.ProgressBar
 import android.widget.RadioGroup
+import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -405,4 +407,44 @@ fun showCompressDialog(
         .setNegativeButton(R.string.cancel, null)
         .show()
         .let { focusAndShowKeyboard(nameEdit, it) }
+}
+
+fun createCompressProgressDialog(activity: AppCompatActivity): Pair<AlertDialog, (Int, Int, String) -> Unit> {
+    val container = createDialogContainer(activity)
+    val progressBar = ProgressBar(activity, null, android.R.attr.progressBarStyleHorizontal).apply {
+        layoutParams = LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+        isIndeterminate = false
+        max = 100
+    }
+    val messageView = TextView(activity).apply {
+        layoutParams = LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        ).apply {
+            topMargin = dpToPx(activity, 8)
+            bottomMargin = dpToPx(activity, 16)
+        }
+        setTextIsSelectable(false)
+        maxLines = 2
+        ellipsize = android.text.TextUtils.TruncateAt.MIDDLE
+    }
+    container.addView(progressBar)
+    container.addView(messageView)
+
+    val dialog = MaterialAlertDialogBuilder(activity)
+        .setTitle(R.string.compress_progress_title)
+        .setView(container)
+        .setCancelable(false)
+        .create()
+
+    val updateProgress: (Int, Int, String) -> Unit = { current, total, fileName ->
+        val progress = if (total > 0) (current * 100 / total).coerceAtMost(100) else 0
+        progressBar.progress = progress
+        messageView.text = activity.getString(R.string.compress_progress_message, current, total, fileName)
+    }
+
+    return dialog to updateProgress
 }
