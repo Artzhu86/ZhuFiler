@@ -9,3 +9,10 @@
 
 # Ignore Gradle build output directory
 build
+
+
+node_modules
+dist
+
+# Web build output
+web/dist
