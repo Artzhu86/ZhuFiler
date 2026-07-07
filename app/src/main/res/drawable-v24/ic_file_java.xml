@@ -1,0 +1,29 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- 文档背景 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M6,2 L14,2 L20,8 L20,22 C20,22.55 19.55,23 19,23 L5,23 C4.45,23 4,22.55 4,22 L4,4 C4,3.45 4.45,3 5,3 Z" />
+    <!-- Java 咖啡杯 -->
+    <path
+        android:fillColor="#F89820"
+        android:pathData="M10,10 L14,10 C15.1,10 16,10.9 16,12 L16,14 C16,15.1 15.1,16 14,16 L10,16 C8.9,16 8,15.1 8,14 L8,12 C8,10.9 8.9,10 10,10 Z" />
+    <!-- 咖啡杯把手 -->
+    <path
+        android:fillColor="#F89820"
+        android:pathData="M16,11 L17.5,11 C18.88,11 20,12.12 20,13.5 L20,14.5 C20,15.88 18.88,17 17.5,17 L16,17" />
+    <!-- 蒸汽 -->
+    <path
+        android:fillColor="#F89820"
+        android:pathData="M11,7 C11,7 11.5,8 11,9"
+        android:strokeWidth="0.8"
+        android:strokeColor="#F89820" />
+    <path
+        android:fillColor="#F89820"
+        android:pathData="M13,7 C13,7 13.5,8 13,9"
+        android:strokeWidth="0.8"
+        android:strokeColor="#F89820" />
+</vector>

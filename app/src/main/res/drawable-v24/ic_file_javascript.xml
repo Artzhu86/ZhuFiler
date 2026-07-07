@@ -1,0 +1,18 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- 文档背景 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M6,2 L14,2 L20,8 L20,22 C20,22.55 19.55,23 19,23 L5,23 C4.45,23 4,22.55 4,22 L4,4 C4,3.45 4.45,3 5,3 Z" />
+    <!-- JS 黄色方块 -->
+    <path
+        android:fillColor="#F7DF1E"
+        android:pathData="M8,7 L16,7 C16.55,7 17,7.45 17,8 L17,16 C17,16.55 16.55,17 16,17 L8,17 C7.45,17 7,16.55 7,16 L7,8 C7,7.45 7.45,7 8,7 Z" />
+    <!-- JS 字母 -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M10,9 L10,13 C10,14 10.5,14.5 11.5,14.5 L12,14.5 L12,13 L11.8,13 C11.5,13 11.3,12.8 11.3,12.5 L11.3,9 Z M13,9 L13,13 C13,14 13.5,14.5 14.5,14.5 L15,14.5 L15,13 L14.8,13 C14.5,13 14.3,12.8 14.3,12.5 L14.3,9 Z" />
+</vector>

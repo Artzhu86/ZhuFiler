@@ -1,0 +1,18 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- 文档背景 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M6,2 L14,2 L20,8 L20,22 C20,22.55 19.55,23 19,23 L5,23 C4.45,23 4,22.55 4,22 L4,4 C4,3.45 4.45,3 5,3 Z" />
+    <!-- Lua 月牙 -->
+    <path
+        android:fillColor="#000080"
+        android:pathData="M14,8 C10.7,8 8,10.7 8,14 C8,17.3 10.7,20 14,20 C15.5,20 16.9,19.4 17.9,18.5 C15.7,18.5 14,16.8 14,14.5 C14,12.2 15.7,10.5 17.9,10.5 C16.9,9.4 15.5,8 14,8 Z" />
+    <!-- 星星 -->
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M17,10 L17.3,10.8 L18,10.8 L17.5,11.3 L17.7,12 L17,11.5 L16.3,12 L16.5,11.3 L16,10.8 L16.7,10.8 Z" />
+</vector>

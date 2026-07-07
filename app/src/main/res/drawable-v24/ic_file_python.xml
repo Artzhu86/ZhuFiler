@@ -1,0 +1,22 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- 文档背景 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M6,2 L14,2 L20,8 L20,22 C20,22.55 19.55,23 19,23 L5,23 C4.45,23 4,22.55 4,22 L4,4 C4,3.45 4.45,3 5,3 Z" />
+    <!-- Python 蛇形 -->
+    <path
+        android:fillColor="#3776AB"
+        android:pathData="M10,8 C10,8 12,8 13,9 C14,10 14,12 13,13 C12,14 10,14 9,13 C8,12 8,10 9,9 C10,8 12,8 13,9" />
+    <!-- 蛇头 -->
+    <path
+        android:fillColor="#FFD43B"
+        android:pathData="M14,9 L16,9 L16,11 L14,11 Z" />
+    <!-- 眼睛 -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M15,9.5 L15.5,9.5 L15.5,10 L15,10 Z" />
+</vector>

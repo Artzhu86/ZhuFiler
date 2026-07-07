@@ -1,0 +1,20 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- 文档背景 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M6,2 L14,2 L20,8 L20,22 C20,22.55 19.55,23 19,23 L5,23 C4.45,23 4,22.55 4,22 L4,4 C4,3.45 4.45,3 5,3 Z" />
+    <!-- Markdown M 字母 -->
+    <path
+        android:pathData="M8,16 L8,8 L10.5,12 L13,8 L13,16" 
+        android:strokeWidth="1.5"
+        android:strokeColor="#555555" />
+    <!-- 底线 -->
+    <path
+        android:pathData="M7,17 L14,17" 
+        android:strokeWidth="1"
+        android:strokeColor="#555555" />
+</vector>

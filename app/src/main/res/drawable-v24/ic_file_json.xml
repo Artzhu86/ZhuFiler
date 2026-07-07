@@ -1,0 +1,23 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- 文档背景 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M6,2 L14,2 L20,8 L20,22 C20,22.55 19.55,23 19,23 L5,23 C4.45,23 4,22.55 4,22 L4,4 C4,3.45 4.45,3 5,3 Z" />
+    <!-- JSON 花括号 -->
+    <path
+        android:pathData="M9,8 C9,8 8,8 8,9 L8,10 C8,10.5 7.5,11 7,11 L7,11 C7.5,11 8,11.5 8,12 L8,12 C8,12.5 8.5,13 9,13 L9,14 C9,15 8,15 8,15" 
+        android:strokeWidth="1.2"
+        android:strokeColor="#292929" />
+    <path
+        android:pathData="M15,8 C15,8 16,8 16,9 L16,10 C16,10.5 16.5,11 17,11 L17,11 C16.5,11 16,11.5 16,12 L16,12 C16,12.5 15.5,13 15,13 L15,14 C15,15 16,15 16,15" 
+        android:strokeWidth="1.2"
+        android:strokeColor="#292929" />
+    <!-- 中间点 -->
+    <path
+        android:fillColor="#292929"
+        android:pathData="M11.5,11 L12.5,11 L12.5,12 L11.5,12 Z" />
+</vector>

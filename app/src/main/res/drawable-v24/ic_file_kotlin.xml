@@ -1,0 +1,14 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- 文档背景 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M6,2 L14,2 L20,8 L20,22 C20,22.55 19.55,23 19,23 L5,23 C4.45,23 4,22.55 4,22 L4,4 C4,3.45 4.45,3 5,3 Z" />
+    <!-- Kotlin K 字母 -->
+    <path
+        android:fillColor="#7F52FF"
+        android:pathData="M9,7 L11,7 L11,11.5 L14.5,7 L17,7 L12.5,12.5 L17.5,18 L15,18 L11,13 L11,18 L9,18 Z" />
+</vector>

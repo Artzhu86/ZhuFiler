@@ -32,10 +32,21 @@ object FileType {
     fun getIconRes(name: String, isDirectory: Boolean): Int {
         if (isDirectory) return R.drawable.outline_folder_24
         val ext = extOf(name)
-        return when {
-            ext in textExts -> R.drawable.outline_description_24
-            ext in imageExts -> R.drawable.outline_image_24
-            ext in archiveExts -> R.drawable.outline_folder_zip_24
+        return when (ext) {
+            "java" -> R.drawable.ic_file_java
+            "kt", "kts" -> R.drawable.ic_file_kotlin
+            "py" -> R.drawable.ic_file_python
+            "js" -> R.drawable.ic_file_javascript
+            "html", "htm" -> R.drawable.ic_file_html
+            "css" -> R.drawable.ic_file_css
+            "json", "jsonc" -> R.drawable.ic_file_json
+            "xml" -> R.drawable.ic_file_xml
+            "md" -> R.drawable.ic_file_markdown
+            "c", "h", "cpp", "hpp", "cc", "cxx" -> R.drawable.ic_file_c
+            "lua" -> R.drawable.ic_file_lua
+            in textExts -> R.drawable.outline_description_24
+            in imageExts -> R.drawable.outline_image_24
+            in archiveExts -> R.drawable.outline_folder_zip_24
             else -> R.drawable.outline_insert_drive_file_24
         }
     }
