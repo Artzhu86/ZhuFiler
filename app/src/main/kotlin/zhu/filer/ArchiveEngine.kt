@@ -169,7 +169,8 @@ object ArchiveEngine {
         sources: List<File>,
         baseDir: File,
         format: CompressFormat,
-        password: String?
+        password: String?,
+        onProgress: ((current: Int, total: Int, currentFile: String) -> Unit)? = null
     ): Boolean {
         val items = collectSources(sources, baseDir)
         if (items.isEmpty()) return false
@@ -177,13 +178,18 @@ object ArchiveEngine {
         if (outputFile.exists()) outputFile.delete()
 
         return when (format) {
-            CompressFormat.ZIP -> createZipArchive(outputFile, items, password)
-            CompressFormat.SEVEN_ZIP -> createSevenZipArchive(outputFile, items, password)
-            CompressFormat.TAR_GZ, CompressFormat.TAR_XZ -> createCompressedTar(outputFile, items, format)
+            CompressFormat.ZIP -> createZipArchive(outputFile, items, password, onProgress)
+            CompressFormat.SEVEN_ZIP -> createSevenZipArchive(outputFile, items, password, onProgress)
+            CompressFormat.TAR_GZ, CompressFormat.TAR_XZ -> createCompressedTar(outputFile, items, format, onProgress)
         }
     }
 
-    private fun createZipArchive(outputFile: File, items: List<SourceItem>, password: String?): Boolean {
+    private fun createZipArchive(
+        outputFile: File,
+        items: List<SourceItem>,
+        password: String?,
+        onProgress: ((current: Int, total: Int, currentFile: String) -> Unit)?
+    ): Boolean {
         val zipFile = if (password != null) {
             ZipFile(outputFile, password.toCharArray())
         } else {
@@ -198,7 +204,7 @@ object ArchiveEngine {
                 aesKeyStrength = AesKeyStrength.KEY_STRENGTH_256
             }
         }
-        for (item in items) {
+        for ((index, item) in items.withIndex()) {
             if (item.isDirectory) {
                 val folderParams = ZipParameters(params).apply {
                     isIncludeRootFolder = false
@@ -210,6 +216,7 @@ object ArchiveEngine {
                 }
                 zipFile.addFile(item.file, fileParams)
             }
+            onProgress?.invoke(index + 1, items.size, item.pathInArchive)
         }
         return true
     }
@@ -217,7 +224,8 @@ object ArchiveEngine {
     private fun createSevenZipArchive(
         outputFile: File,
         items: List<SourceItem>,
-        password: String?
+        password: String?,
+        onProgress: ((current: Int, total: Int, currentFile: String) -> Unit)?
     ): Boolean {
         val raf = RandomAccessFile(outputFile, "rw")
         var outArchive: IOutCreateArchive<*>? = null
@@ -229,9 +237,9 @@ object ArchiveEngine {
             }
             val outStream = RandomAccessFileOutStream(raf)
             val callback = if (password != null) {
-                CreateCallbackWithPassword(items, password)
+                CreateCallbackWithPassword(items, password, onProgress)
             } else {
-                CreateCallback(items)
+                CreateCallback(items, onProgress)
             }
             @Suppress("UNCHECKED_CAST")
             (outArchive as IOutCreateArchive<IOutItemAllFormats>).createArchive(outStream, items.size, callback as IOutCreateCallback<IOutItemAllFormats>)
@@ -245,7 +253,8 @@ object ArchiveEngine {
     private fun createCompressedTar(
         outputFile: File,
         items: List<SourceItem>,
-        format: CompressFormat
+        format: CompressFormat,
+        onProgress: ((current: Int, total: Int, currentFile: String) -> Unit)?
     ): Boolean {
         val tempTar = File(outputFile.parentFile, ".${outputFile.name}.tmp.tar")
         var raf: RandomAccessFile? = null
@@ -256,7 +265,7 @@ object ArchiveEngine {
             raf = RandomAccessFile(tempTar, "rw")
             outArchive = SevenZip.openOutArchive(ArchiveFormat.TAR)
             val outStream = RandomAccessFileOutStream(raf)
-            callback = CreateCallback(items)
+            callback = CreateCallback(items, onProgress)
             outArchive.createArchive(outStream, items.size, callback)
         } finally {
             try { outArchive?.close() } catch (ignored: Exception) {}
@@ -267,6 +276,8 @@ object ArchiveEngine {
             tempTar.delete()
             return false
         }
+
+        onProgress?.invoke(items.size, items.size, outputFile.name)
 
         try {
             FileInputStream(tempTar).use { input ->
@@ -333,9 +344,11 @@ object ArchiveEngine {
     }
 
     private open class CreateCallback(
-        val items: List<SourceItem>
+        val items: List<SourceItem>,
+        private val onProgress: ((current: Int, total: Int, currentFile: String) -> Unit)? = null
     ) : IOutCreateCallback<IOutItemAllFormats> {
         var failed = false
+        private var completedCount = 0
         override fun getItemInformation(
             index: Int,
             outItemFactory: OutItemFactory<IOutItemAllFormats>
@@ -362,13 +375,19 @@ object ArchiveEngine {
         override fun setCompleted(complete: Long) {}
         override fun setOperationResult(operationResultOk: Boolean) {
             if (!operationResultOk) failed = true
+            completedCount++
+            if (completedCount <= items.size) {
+                val item = items[completedCount - 1]
+                onProgress?.invoke(completedCount, items.size, item.pathInArchive)
+            }
         }
     }
 
     private class CreateCallbackWithPassword(
         items: List<SourceItem>,
-        private val password: String
-    ) : CreateCallback(items), ICryptoGetTextPassword {
+        private val password: String,
+        onProgress: ((current: Int, total: Int, currentFile: String) -> Unit)? = null
+    ) : CreateCallback(items, onProgress), ICryptoGetTextPassword {
         override fun cryptoGetTextPassword(): String = password
     }
 }
