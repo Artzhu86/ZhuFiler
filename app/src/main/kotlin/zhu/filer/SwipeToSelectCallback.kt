@@ -10,6 +10,7 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 
+// 滑动选择回调
 class SwipeToSelectCallback(
     private val adapter: FileListAdapter,
     private val onSwipeToSelect: (Int, Boolean) -> Unit
@@ -20,10 +21,13 @@ class SwipeToSelectCallback(
     private val maxSwipeRatio = 0.15f
     private val thresholdRatio = 1.0f
 
+    // 处理移动
     override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean = false
 
+    // 处理滑动
     override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {}
 
+    // 绘制子项
     override fun onChildDraw(
         c: Canvas,
         recyclerView: RecyclerView,
@@ -67,6 +71,7 @@ class SwipeToSelectCallback(
         }
     }
 
+    // 清除视图
     override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
         val itemView = viewHolder.itemView
         val position = viewHolder.adapterPosition
@@ -94,6 +99,7 @@ class SwipeToSelectCallback(
         super.clearView(recyclerView, viewHolder)
     }
 
+    // 获取滑动方向
     override fun getSwipeDirs(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int {
         val position = viewHolder.adapterPosition
         if (position == RecyclerView.NO_POSITION || adapter.isUpItem(position)) {
@@ -102,7 +108,9 @@ class SwipeToSelectCallback(
         return super.getSwipeDirs(recyclerView, viewHolder)
     }
 
+    // 获取滑动阈值
     override fun getSwipeThreshold(viewHolder: RecyclerView.ViewHolder): Float = 1.0f
 
+    // 获取滑动逃逸速度
     override fun getSwipeEscapeVelocity(defaultValue: Float): Float = Float.MAX_VALUE
 }

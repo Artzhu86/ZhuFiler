@@ -42,10 +42,11 @@
              app:layout_constraintEnd_toEndOf="parent"
              android:id="@+id/fast_scroller" />
 
-        <ProgressBar
+        <com.google.android.material.progressindicator.CircularProgressIndicator
              android:layout_height="wrap_content"
              android:layout_width="wrap_content"
              android:visibility="gone"
+             android:indeterminate="true"
              app:layout_constraintTop_toTopOf="parent"
              app:layout_constraintBottom_toBottomOf="parent"
              android:id="@+id/progress_bar"
@@ -55,7 +56,10 @@
         <com.google.android.material.floatingactionbutton.FloatingActionButton
              android:layout_height="wrap_content"
              android:layout_width="wrap_content"
-             android:layout_margin="16dp"
+             android:layout_marginTop="16dp"
+             android:layout_marginStart="16dp"
+             android:layout_marginEnd="12dp"
+             android:layout_marginBottom="16dp"
              app:layout_constraintBottom_toBottomOf="parent"
              app:srcCompat="@android:drawable/ic_input_add"
              android:id="@+id/fab_add"
@@ -64,9 +68,9 @@
         <com.google.android.material.floatingactionbutton.FloatingActionButton
              android:layout_height="wrap_content"
              android:layout_width="wrap_content"
+             android:layout_marginEnd="12dp"
              android:layout_marginBottom="80dp"
              android:visibility="gone"
-             android:layout_marginEnd="16dp"
              app:backgroundTint="?attr/colorPrimary"
              app:tint="?attr/colorOnPrimary"
              app:layout_constraintEnd_toEndOf="parent"
@@ -76,9 +80,9 @@
         <com.google.android.material.floatingactionbutton.FloatingActionButton
              android:layout_height="wrap_content"
              android:layout_width="wrap_content"
+             android:layout_marginEnd="12dp"
              android:layout_marginBottom="140dp"
              android:visibility="gone"
-             android:layout_marginEnd="16dp"
              app:backgroundTint="?attr/colorPrimary"
              app:tint="?attr/colorOnPrimary"
              app:layout_constraintEnd_toEndOf="parent"

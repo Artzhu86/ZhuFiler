@@ -11,11 +11,13 @@
 
 -keep class io.getstream.photoview.** { *; }
 
+-keep class androidx.media3.** { *; }
+-dontwarn androidx.media3.**
+
 -keepclassmembers class androidx.appcompat.widget.Toolbar {
     android.widget.TextView mTitleTextView;
 }
 
-# 7-Zip-JBinding uses JNI + reflection to load and call the native library.
 -keep class net.sf.sevenzipjbinding.** { *; }
 -dontwarn net.sf.sevenzipjbinding.**
 

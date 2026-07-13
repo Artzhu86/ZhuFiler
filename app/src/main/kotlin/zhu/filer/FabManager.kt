@@ -8,6 +8,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.io.File
 
+// 悬浮按钮管理器
 class FabManager(private val activity: AppCompatActivity) {
 
     private lateinit var fabAction: FloatingActionButton
@@ -19,8 +20,10 @@ class FabManager(private val activity: AppCompatActivity) {
     private var onDeselect: (() -> Unit)? = null
     private var currentMode: FabMode = FabMode.NONE
 
+    // 悬浮按钮模式
     enum class FabMode { NONE, PASTE, MULTI_SELECT }
 
+    // 初始化悬浮按钮
     fun setup(
         fabAction: FloatingActionButton,
         fabCancel: FloatingActionButton,
@@ -52,6 +55,7 @@ class FabManager(private val activity: AppCompatActivity) {
         }
     }
 
+    // 处理粘贴操作
     private fun handlePaste(clipboard: ClipboardManager) {
         val files = clipboard.getFiles()
         if (files.isEmpty()) return
@@ -74,11 +78,13 @@ class FabManager(private val activity: AppCompatActivity) {
         }
     }
 
+    // 设置多选操作回调
     fun setMultiSelectActions(onSelectAll: () -> Unit, onDeselect: () -> Unit) {
         this.onSelectAll = onSelectAll
         this.onDeselect = onDeselect
     }
 
+    // 更新粘贴按钮状态
     fun updatePasteButtons(clipboard: ClipboardManager) {
         if (clipboard.hasContent()) {
             showMode(FabMode.PASTE, R.drawable.outline_content_paste_24)
@@ -87,6 +93,7 @@ class FabManager(private val activity: AppCompatActivity) {
         }
     }
 
+    // 更新多选按钮状态
     fun updateMultiSelectButtons(show: Boolean) {
         if (show) {
             showMode(FabMode.MULTI_SELECT, R.drawable.outline_select_all_24)
@@ -95,6 +102,7 @@ class FabManager(private val activity: AppCompatActivity) {
         }
     }
 
+    // 显示指定模式按钮
     private fun showMode(mode: FabMode, iconRes: Int) {
         if (currentMode == mode && fabAction.isVisible && fabAction.alpha == 1f) return
         currentMode = mode
@@ -135,6 +143,7 @@ class FabManager(private val activity: AppCompatActivity) {
         }
     }
 
+    // 隐藏所有按钮
     private fun hideAll() {
         if (currentMode == FabMode.NONE && !fabAction.isVisible) return
         currentMode = FabMode.NONE

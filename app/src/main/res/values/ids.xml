@@ -2,4 +2,11 @@
 <resources>
     <item name="tag_view" type="id" />
     <item name="tag_toolbar_title" type="id" />
+    <item name="file_item_container" type="id" />
+    <item name="file_item_card" type="id" />
+    <item name="file_item_thumb" type="id" />
+    <item name="file_item_icon" type="id" />
+    <item name="file_item_name" type="id" />
+    <item name="file_item_encrypted" type="id" />
+    <item name="file_item_subtitle" type="id" />
 </resources>

@@ -7,10 +7,8 @@ import android.os.Looper
 import android.text.format.Formatter
 import android.view.View
 import android.view.ViewGroup
-import android.widget.CheckedTextView
 import android.widget.LinearLayout
 import android.widget.ListView
-import android.widget.ProgressBar
 import android.widget.RadioGroup
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
@@ -18,12 +16,15 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.progressindicator.LinearProgressIndicator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 
+// 显示导航对话框
 fun showNavigateDialog(activity: AppCompatActivity, currentPath: String, loadDir: suspend (File) -> Unit, prefs: android.content.SharedPreferences) {
     val rootLayout = createDialogContainer(activity)
     val (inputLayout, editText) = createInput(activity, currentPath)
@@ -31,7 +32,7 @@ fun showNavigateDialog(activity: AppCompatActivity, currentPath: String, loadDir
 
     lateinit var dialog: AlertDialog
     val builder = MaterialAlertDialogBuilder(activity)
-        .setTitle(R.string.working_directory)
+        .setTitle(R.string.current_directory)
         .setView(rootLayout)
         .setPositiveButton(R.string.action_switch) { _, _ ->
             val path = editText.text?.toString()?.trim() ?: ""
@@ -57,7 +58,7 @@ fun showNavigateDialog(activity: AppCompatActivity, currentPath: String, loadDir
                 layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dpToPx(activity, 400))
                 layoutManager = LinearLayoutManager(activity)
                 adapter = FileListAdapter(
-                    onItemClick = { file, _ ->
+                    onItemClick = { file, _, _ ->
                         recentDialog.dismiss()
                         Handler(Looper.getMainLooper()).postDelayed({
                             activity.lifecycleScope.launch { loadDir(file) }
@@ -79,7 +80,8 @@ fun showNavigateDialog(activity: AppCompatActivity, currentPath: String, loadDir
     editText.post { editText.selectAll() }
 }
 
-fun showCreate(activity: AppCompatActivity, currentDir: File, loadDir: suspend (File, String?) -> Unit) {
+// 显示创建对话框
+fun showCreateDialog(activity: AppCompatActivity, currentDir: File, loadDir: suspend (File, String?) -> Unit) {
     val rootLayout = createDialogContainer(activity)
     val (inputLayout, edit) = createInput(activity)
     rootLayout.addView(inputLayout)
@@ -114,7 +116,8 @@ fun showCreate(activity: AppCompatActivity, currentDir: File, loadDir: suspend (
         .let { focusAndShowKeyboard(edit, it) }
 }
 
-fun showRenameDialog(activity: AppCompatActivity, currentDir: File, loadDir: suspend (File) -> Unit, file: File) {
+// 显示重命名对话框
+fun showRenameDialog(activity: AppCompatActivity, currentDir: File, loadDir: suspend (File) -> Unit, file: File, onRenamed: (() -> Unit)? = null) {
     val oldName = file.name
     val rootLayout = createDialogContainer(activity)
     val (inputLayout, editText) = createInput(activity, oldName)
@@ -150,7 +153,7 @@ fun showRenameDialog(activity: AppCompatActivity, currentDir: File, loadDir: sus
                         val ok = withContext(Dispatchers.IO) { file.renameTo(newFile) }
                         if (ok) {
                             toast(activity, activity.getString(R.string.rename_success))
-                            loadDir(currentDir)
+                            if (onRenamed != null) onRenamed() else loadDir(currentDir)
                         } else {
                             toast(activity, activity.getString(R.string.rename_failed))
                         }
@@ -163,16 +166,19 @@ fun showRenameDialog(activity: AppCompatActivity, currentDir: File, loadDir: sus
         .let { focusAndShowKeyboard(editText, it) }
 }
 
-fun showOps(
+// 显示操作菜单
+fun showFileOpsDialog(
     activity: AppCompatActivity,
     currentDir: File,
     loadDir: suspend (File) -> Unit,
     file: File,
+    fileOpener: FileOpener,
     onCopyCut: (File, Boolean) -> Unit = { _, _ -> },
     onBookmarkToggle: ((String) -> Unit)? = null,
     isBookmarked: Boolean = false,
-    onOpenArchive: ((File) -> Unit)? = null,
-    onCompress: ((File) -> Unit)? = null
+    onCompress: ((File) -> Unit)? = null,
+    onDelete: (() -> Unit)? = null,
+    onRenamed: (() -> Unit)? = null
 ) {
     val items = mutableListOf(
         activity.getString(R.string.copy),
@@ -196,7 +202,7 @@ fun showOps(
         .setItems(items.toTypedArray()) { _, which ->
             val action = items[which]
             when (action) {
-                activity.getString(R.string.rename) -> showRenameDialog(activity, currentDir, loadDir, file)
+                activity.getString(R.string.rename) -> showRenameDialog(activity, currentDir, loadDir, file, onRenamed)
                 activity.getString(R.string.copy) -> onCopyCut(file, false)
                 activity.getString(R.string.move) -> onCopyCut(file, true)
                 activity.getString(R.string.delete) -> {
@@ -206,15 +212,17 @@ fun showOps(
                             activity.lifecycleScope.launch {
                                 val ok = withContext(Dispatchers.IO) { if (file.isDirectory) file.deleteRecursively() else file.delete() }
                                 if (!ok) toast(activity, activity.getString(R.string.delete_failed))
-                                if (ok) loadDir(currentDir)
+                                if (ok) {
+                                    if (onDelete != null) onDelete() else loadDir(currentDir)
+                                }
                             }
                         }.setNegativeButton(R.string.cancel, null).show()
                 }
-                activity.getString(R.string.open_with) -> previewFile(activity, file, forceChoose = true, onOpenArchive = onOpenArchive)
+                activity.getString(R.string.open_with) -> fileOpener.openFile(file, forceChoose = true)
                 activity.getString(R.string.share) -> shareFile(activity, file)
                 activity.getString(R.string.add_bookmark), activity.getString(R.string.remove_bookmark) -> onBookmarkToggle?.invoke(file.absolutePath)
                 activity.getString(R.string.compress) -> onCompress?.invoke(file)
-                activity.getString(R.string.properties) -> showDetails(activity, file)
+                activity.getString(R.string.properties) -> showDetailsDialog(activity, file)
             }
         }
         .setNegativeButton(R.string.cancel, null)
@@ -222,12 +230,11 @@ fun showOps(
     dialog.show()
 }
 
-fun showArchiveItemOps(
+// 显示归档条目操作
+fun showArchiveItemOpsDialog(
     activity: AppCompatActivity,
     item: FileItem,
-    cachedPassword: String?,
-    onExtract: (FileItem, String?) -> Unit,
-    onCachePassword: (String) -> Unit
+    fileOpener: FileOpener
 ) {
     val items = mutableListOf(activity.getString(R.string.properties))
     if (!item.isDirectory) {
@@ -238,21 +245,8 @@ fun showArchiveItemOps(
         .setItems(items.toTypedArray()) { _, which ->
             val action = items[which]
             when (action) {
-                activity.getString(R.string.open_with) -> {
-                    if (item.encrypted) {
-                        if (cachedPassword != null) {
-                            onExtract(item, cachedPassword)
-                        } else {
-                            showArchivePasswordDialog(activity) { password ->
-                                onCachePassword(password)
-                                onExtract(item, password)
-                            }
-                        }
-                    } else {
-                        onExtract(item, null)
-                    }
-                }
-                activity.getString(R.string.properties) -> showArchiveEntryDetails(activity, item)
+                activity.getString(R.string.open_with) -> fileOpener.openArchiveEntry(item, forceChoose = true)
+                activity.getString(R.string.properties) -> showArchiveEntryDetailsDialog(activity, item)
             }
         }
         .setNegativeButton(R.string.cancel, null)
@@ -261,7 +255,8 @@ fun showArchiveItemOps(
     dialog.listView?.let { applySelectableEffectToListView(it) }
 }
 
-fun showArchiveEntryDetails(activity: AppCompatActivity, item: FileItem) {
+// 显示归档条目详情对话框
+fun showArchiveEntryDetailsDialog(activity: AppCompatActivity, item: FileItem) {
     val sizeStr = Formatter.formatFileSize(activity, item.size)
     val dialog = MaterialAlertDialogBuilder(activity)
         .setTitle(item.displayName)
@@ -275,6 +270,7 @@ fun showArchiveEntryDetails(activity: AppCompatActivity, item: FileItem) {
     dialog.show()
 }
 
+// 应用列表可选效果
 fun applySelectableEffectToListView(listView: ListView) {
     for (i in 0 until listView.childCount) {
         val child = listView.getChildAt(i)
@@ -286,32 +282,14 @@ fun applySelectableEffectToListView(listView: ListView) {
     })
 }
 
-fun applySingleChoiceColors(listView: ListView) {
-    val primaryColor = getThemeColor(listView.context, com.google.android.material.R.attr.colorPrimary)
-    val colorStateList = ColorStateList.valueOf(primaryColor)
-    val apply: (View) -> Unit = { child ->
-        if (child is CheckedTextView) {
-            child.checkMarkTintList = colorStateList
-        }
-    }
-    for (i in 0 until listView.childCount) {
-        apply(listView.getChildAt(i))
-    }
-    listView.setOnHierarchyChangeListener(object : ViewGroup.OnHierarchyChangeListener {
-        override fun onChildViewAdded(parent: View, child: View) {
-            apply(child)
-            child.applySelectableEffect()
-        }
-        override fun onChildViewRemoved(parent: View, child: View) {}
-    })
-}
-
+// 应用可选效果
 fun View.applySelectableEffect() {
     val highlightColor = getThemeColor(context, android.R.attr.colorControlHighlight)
     val ripple = RippleDrawable(ColorStateList.valueOf(highlightColor), null, null)
     foreground = ripple
 }
 
+// 显示归档密码对话框
 fun showArchivePasswordDialog(activity: AppCompatActivity, onConfirm: (String) -> Unit) {
     val rootLayout = createDialogContainer(activity)
     val (inputLayout, editText) = createPasswordInput(activity, activity.getString(R.string.password))
@@ -329,11 +307,12 @@ fun showArchivePasswordDialog(activity: AppCompatActivity, onConfirm: (String) -
         .let { focusAndShowKeyboard(editText, it) }
 }
 
+// 显示压缩对话框
 fun showCompressDialog(
     activity: AppCompatActivity,
     sources: List<File>,
     currentDir: File,
-    onCompress: (outputFile: File, format: CompressFormat, password: String?) -> Unit
+    onCompress: (outputFile: File, format: ArchiveFormat, password: String?) -> Unit
 ) {
     val rootLayout = createDialogContainer(activity)
 
@@ -361,21 +340,15 @@ fun showCompressDialog(
             topMargin = dpToPx(activity, 8)
         }
     }
-    data class RadioOpt(val format: CompressFormat, val radio: com.google.android.material.radiobutton.MaterialRadioButton)
+    // 单选选项
+    data class RadioOpt(val format: ArchiveFormat, val radio: com.google.android.material.radiobutton.MaterialRadioButton)
     val opts = listOf("zip", "7z", "tar.gz", "tar.xz").map { label ->
-        val radio = com.google.android.material.radiobutton.MaterialRadioButton(activity).apply {
-            text = label
-            id = View.generateViewId()
-            setSingleLine(true)
-            layoutParams = RadioGroup.LayoutParams(
-                RadioGroup.LayoutParams.WRAP_CONTENT,
-                RadioGroup.LayoutParams.WRAP_CONTENT,
-                1f
-            )
-        }
+        val radio = activity.layoutInflater.inflate(R.layout.item_compress_format, radioGroup, false) as com.google.android.material.radiobutton.MaterialRadioButton
+        radio.text = label
+        radio.id = View.generateViewId()
         if (label == "zip") radio.isChecked = true
         radioGroup.addView(radio)
-        RadioOpt(CompressFormat.entries.first { it.extension == label }, radio)
+        RadioOpt(ArchiveFormat.entries.first { it.extension == label }, radio)
     }
     rootLayout.addView(radioGroup)
 
@@ -389,7 +362,7 @@ fun showCompressDialog(
         val newName = "$stripped.${opt.format.extension}"
         nameEdit.setText(newName)
         nameEdit.setSelection(0, stripped.length)
-        val supportsPassword = opt.format == CompressFormat.SEVEN_ZIP || opt.format == CompressFormat.ZIP
+        val supportsPassword = opt.format == ArchiveFormat.SEVEN_ZIP || opt.format == ArchiveFormat.ZIP
         pwdLayout.isEnabled = supportsPassword
         if (!supportsPassword) pwdEdit.setText("")
     }
@@ -409,41 +382,32 @@ fun showCompressDialog(
         .let { focusAndShowKeyboard(nameEdit, it) }
 }
 
-fun createCompressProgressDialog(activity: AppCompatActivity): Pair<AlertDialog, (Int, Int, String) -> Unit> {
-    val container = createDialogContainer(activity)
-    val progressBar = ProgressBar(activity, null, android.R.attr.progressBarStyleHorizontal).apply {
-        layoutParams = LinearLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT
-        )
-        isIndeterminate = false
-        max = 100
-    }
-    val messageView = TextView(activity).apply {
-        layoutParams = LinearLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT
-        ).apply {
-            topMargin = dpToPx(activity, 8)
-            bottomMargin = dpToPx(activity, 16)
-        }
-        setTextIsSelectable(false)
-        maxLines = 2
-        ellipsize = android.text.TextUtils.TruncateAt.MIDDLE
-    }
-    container.addView(progressBar)
-    container.addView(messageView)
+// 创建压缩进度对话框
+fun createCompressProgressDialog(
+    activity: AppCompatActivity,
+    onHide: () -> Unit,
+    onCancel: () -> Unit
+): Pair<AlertDialog, (String, Long, Long, Int, Int) -> Unit> {
+    val container = activity.layoutInflater.inflate(R.layout.dialog_compress_progress, null) as LinearLayout
+    val fileNameView = container.findViewById<TextView>(R.id.compress_progress_filename)
+    val progressBar = container.findViewById<LinearProgressIndicator>(R.id.compress_progress_bar)
+
+    fileNameView.setTextIsSelectable(false)
+    fileNameView.setTextColor(MaterialColors.getColor(fileNameView, com.google.android.material.R.attr.colorOnSurfaceVariant, 0xFF888888.toInt()))
+    progressBar.setProgressCompat(0, false)
 
     val dialog = MaterialAlertDialogBuilder(activity)
         .setTitle(R.string.compress_progress_title)
         .setView(container)
         .setCancelable(false)
+        .setPositiveButton(R.string.hide) { _, _ -> onHide() }
+        .setNegativeButton(R.string.cancel) { _, _ -> onCancel() }
         .create()
 
-    val updateProgress: (Int, Int, String) -> Unit = { current, total, fileName ->
-        val progress = if (total > 0) (current * 100 / total).coerceAtMost(100) else 0
-        progressBar.progress = progress
-        messageView.text = activity.getString(R.string.compress_progress_message, current, total, fileName)
+    val updateProgress: (String, Long, Long, Int, Int) -> Unit = { currentFile, fileBytesRead, fileBytesTotal, fileIndex, fileCount ->
+        fileNameView.text = currentFile
+        val percent = if (fileBytesTotal > 0) ((fileBytesRead * 100 / fileBytesTotal).toInt()).coerceIn(0, 100) else 100
+        progressBar.setProgressCompat(percent, true)
     }
 
     return dialog to updateProgress

@@ -1,3 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="theme_blue_primary">#0061A4</color>
+    <color name="theme_blue_on_primary">#FFFFFF</color>
+    <color name="theme_blue_primary_container">#D1E4FF</color>
+    <color name="theme_blue_on_primary_container">#001D36</color>
+
+    <color name="theme_green_primary">#006D40</color>
+    <color name="theme_green_on_primary">#FFFFFF</color>
+    <color name="theme_green_primary_container">#8FF8B9</color>
+    <color name="theme_green_on_primary_container">#002111</color>
+
+    <color name="theme_purple_primary">#6B4EFF</color>
+    <color name="theme_purple_on_primary">#FFFFFF</color>
+    <color name="theme_purple_primary_container">#E7DEFF</color>
+    <color name="theme_purple_on_primary_container">#1C0063</color>
+
+    <color name="theme_orange_primary">#8C5000</color>
+    <color name="theme_orange_on_primary">#FFFFFF</color>
+    <color name="theme_orange_primary_container">#FFDCBE</color>
+    <color name="theme_orange_on_primary_container">#2D1600</color>
 </resources>

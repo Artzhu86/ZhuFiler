@@ -7,10 +7,12 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 
+// 返回键处理
 class BackPressHandler(private val activity: AppCompatActivity) {
 
     private var backPressedOnce = false
 
+    // 设置返回键回调
     fun setup(
         multiSelectController: MultiSelectController,
         drawerLayout: DrawerLayout,

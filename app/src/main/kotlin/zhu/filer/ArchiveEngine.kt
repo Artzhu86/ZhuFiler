@@ -1,6 +1,6 @@
 package zhu.filer
 
-import net.sf.sevenzipjbinding.ArchiveFormat
+import net.sf.sevenzipjbinding.ArchiveFormat as SevenZipArchiveFormat
 import net.sf.sevenzipjbinding.ExtractOperationResult
 import net.sf.sevenzipjbinding.IArchiveOpenCallback
 import net.sf.sevenzipjbinding.ICryptoGetTextPassword
@@ -24,6 +24,7 @@ import org.tukaani.xz.XZOutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.io.InputStream
 import java.io.RandomAccessFile
 import java.util.Date
 import net.lingala.zip4j.ZipFile
@@ -34,27 +35,33 @@ import net.lingala.zip4j.model.enums.CompressionLevel
 import net.lingala.zip4j.model.enums.EncryptionMethod
 import java.util.zip.GZIPOutputStream
 
+// 归档需要密码异常
 class ArchivePasswordRequiredException(message: String = "Password required") : Exception(message)
 
+// 归档密码错误异常
 class WrongArchivePasswordException(message: String = "Wrong password") : Exception(message)
 
-enum class CompressFormat(val extension: String) {
+// 归档格式枚举
+enum class ArchiveFormat(val extension: String) {
     ZIP("zip"),
     SEVEN_ZIP("7z"),
     TAR_GZ("tar.gz"),
     TAR_XZ("tar.xz")
 }
 
+// 去除已知归档扩展名
 internal fun stripKnownArchiveExt(name: String): String {
-    for (fmt in CompressFormat.entries) {
+    for (fmt in ArchiveFormat.entries) {
         val suffix = ".${fmt.extension}"
         if (name.endsWith(suffix, ignoreCase = true)) return name.dropLast(suffix.length)
     }
     return name
 }
 
+// 归档引擎
 object ArchiveEngine {
 
+    // 归档条目信息
     data class EntryInfo(
         val path: String,
         val name: String,
@@ -64,6 +71,7 @@ object ArchiveEngine {
         val lastModified: Long = 0L
     )
 
+    // 列出归档条目
     fun listEntries(archiveFile: File, internalPath: String, password: String?): List<EntryInfo> {
         val raf = RandomAccessFile(archiveFile, "r")
         var archive: IInArchive? = null
@@ -82,6 +90,7 @@ object ArchiveEngine {
         }
     }
 
+    // 读取子条目列表
     private fun readChildren(archive: IInArchive, internalPath: String): List<EntryInfo> {
         val prefix = if (internalPath.isEmpty()) "" else "$internalPath/"
         val children = LinkedHashMap<String, EntryInfo>()
@@ -117,6 +126,7 @@ object ArchiveEngine {
         return children.values.sortedWith(compareBy({ !it.isDirectory }, { it.name.lowercase() }))
     }
 
+    // 解压单个条目
     fun extractEntry(archiveFile: File, entryPath: String, password: String?, destFile: File): Boolean {
         val raf = RandomAccessFile(archiveFile, "r")
         var archive: IInArchive? = null
@@ -144,6 +154,7 @@ object ArchiveEngine {
             destFile.parentFile?.mkdirs()
             out = FileOutputStream(destFile)
             val outStream = object : ISequentialOutStream {
+                // 写入解压数据
                 override fun write(data: ByteArray?): Int {
                     if (data != null && data.isNotEmpty()) out.write(data)
                     return data?.size ?: 0
@@ -162,15 +173,17 @@ object ArchiveEngine {
         }
     }
 
+    // 归档源条目信息
     private data class SourceItem(val file: File, val pathInArchive: String, val isDirectory: Boolean)
 
+    // 创建归档
     fun createArchive(
         outputFile: File,
         sources: List<File>,
         baseDir: File,
-        format: CompressFormat,
+        format: ArchiveFormat,
         password: String?,
-        onProgress: ((current: Int, total: Int, currentFile: String) -> Unit)? = null
+        onProgress: ((currentFile: String, fileBytesRead: Long, fileBytesTotal: Long, fileIndex: Int, fileCount: Int) -> Unit)? = null
     ): Boolean {
         val items = collectSources(sources, baseDir)
         if (items.isEmpty()) return false
@@ -178,17 +191,18 @@ object ArchiveEngine {
         if (outputFile.exists()) outputFile.delete()
 
         return when (format) {
-            CompressFormat.ZIP -> createZipArchive(outputFile, items, password, onProgress)
-            CompressFormat.SEVEN_ZIP -> createSevenZipArchive(outputFile, items, password, onProgress)
-            CompressFormat.TAR_GZ, CompressFormat.TAR_XZ -> createCompressedTar(outputFile, items, format, onProgress)
+            ArchiveFormat.ZIP -> createZipArchive(outputFile, items, password, onProgress)
+            ArchiveFormat.SEVEN_ZIP -> createSevenZipArchive(outputFile, items, password, onProgress)
+            ArchiveFormat.TAR_GZ, ArchiveFormat.TAR_XZ -> createCompressedTar(outputFile, items, format, onProgress)
         }
     }
 
+    // 创建Zip归档
     private fun createZipArchive(
         outputFile: File,
         items: List<SourceItem>,
         password: String?,
-        onProgress: ((current: Int, total: Int, currentFile: String) -> Unit)?
+        onProgress: ((currentFile: String, fileBytesRead: Long, fileBytesTotal: Long, fileIndex: Int, fileCount: Int) -> Unit)?
     ): Boolean {
         val zipFile = if (password != null) {
             ZipFile(outputFile, password.toCharArray())
@@ -208,24 +222,31 @@ object ArchiveEngine {
             if (item.isDirectory) {
                 val folderParams = ZipParameters(params).apply {
                     isIncludeRootFolder = false
+                    fileNameInZip = item.pathInArchive + "/"
                 }
                 zipFile.addFolder(item.file, folderParams)
+                onProgress?.invoke(item.pathInArchive, 0L, 0L, index, items.size)
             } else {
                 val fileParams = ZipParameters(params).apply {
                     fileNameInZip = item.pathInArchive
                 }
-                zipFile.addFile(item.file, fileParams)
+                val total = item.file.length()
+                onProgress?.invoke(item.pathInArchive, 0L, total, index, items.size)
+                val counting = CountingInputStream(FileInputStream(item.file), total) { read ->
+                    onProgress?.invoke(item.pathInArchive, read, total, index, items.size)
+                }
+                zipFile.addStream(counting, fileParams)
             }
-            onProgress?.invoke(index + 1, items.size, item.pathInArchive)
         }
         return true
     }
 
+    // 创建7z归档
     private fun createSevenZipArchive(
         outputFile: File,
         items: List<SourceItem>,
         password: String?,
-        onProgress: ((current: Int, total: Int, currentFile: String) -> Unit)?
+        onProgress: ((currentFile: String, fileBytesRead: Long, fileBytesTotal: Long, fileIndex: Int, fileCount: Int) -> Unit)?
     ): Boolean {
         val raf = RandomAccessFile(outputFile, "rw")
         var outArchive: IOutCreateArchive<*>? = null
@@ -250,11 +271,12 @@ object ArchiveEngine {
         }
     }
 
+    // 创建Tar归档
     private fun createCompressedTar(
         outputFile: File,
         items: List<SourceItem>,
-        format: CompressFormat,
-        onProgress: ((current: Int, total: Int, currentFile: String) -> Unit)?
+        format: ArchiveFormat,
+        onProgress: ((currentFile: String, fileBytesRead: Long, fileBytesTotal: Long, fileIndex: Int, fileCount: Int) -> Unit)?
     ): Boolean {
         val tempTar = File(outputFile.parentFile, ".${outputFile.name}.tmp.tar")
         var raf: RandomAccessFile? = null
@@ -263,7 +285,7 @@ object ArchiveEngine {
         try {
             if (tempTar.exists()) tempTar.delete()
             raf = RandomAccessFile(tempTar, "rw")
-            outArchive = SevenZip.openOutArchive(ArchiveFormat.TAR)
+            outArchive = SevenZip.openOutArchive(SevenZipArchiveFormat.TAR)
             val outStream = RandomAccessFileOutStream(raf)
             callback = CreateCallback(items, onProgress)
             outArchive.createArchive(outStream, items.size, callback)
@@ -277,17 +299,17 @@ object ArchiveEngine {
             return false
         }
 
-        onProgress?.invoke(items.size, items.size, outputFile.name)
+        onProgress?.invoke(outputFile.name, 0L, 0L, items.size, items.size)
 
         try {
             FileInputStream(tempTar).use { input ->
                 when (format) {
-                    CompressFormat.TAR_GZ -> {
+                    ArchiveFormat.TAR_GZ -> {
                         GZIPOutputStream(FileOutputStream(outputFile)).use { output ->
                             input.copyTo(output)
                         }
                     }
-                    CompressFormat.TAR_XZ -> {
+                    ArchiveFormat.TAR_XZ -> {
                         XZOutputStream(FileOutputStream(outputFile), LZMA2Options()).use { output ->
                             input.copyTo(output)
                         }
@@ -301,6 +323,7 @@ object ArchiveEngine {
         return true
     }
 
+    // 收集归档源文件
     private fun collectSources(sources: List<File>, baseDir: File): List<SourceItem> {
         val result = mutableListOf<SourceItem>()
         for (src in sources) {
@@ -317,6 +340,7 @@ object ArchiveEngine {
         return result
     }
 
+    // 添加目录到归档源
     private fun addDirectory(result: MutableList<SourceItem>, dir: File, pathInArchive: String) {
         result.add(SourceItem(dir, pathInArchive, true))
         val children = dir.listFiles() ?: return
@@ -327,13 +351,18 @@ object ArchiveEngine {
         }
     }
 
+    // 规范化内部路径
     private fun normalizeInternal(path: String): String =
         path.replace('\\', '/').trim('/').trim()
 
+    // 打开归档回调
     private class OpenCallback(val password: String?) : IArchiveOpenCallback, ICryptoGetTextPassword {
         var passwordRequested = false
+        // 设置总进度
         override fun setTotal(files: Long?, bytes: Long?) {}
+        // 设置已完成进度
         override fun setCompleted(files: Long?, bytes: Long?) {}
+        // 获取解压密码
         override fun cryptoGetTextPassword(): String {
             if (password.isNullOrEmpty()) {
                 passwordRequested = true
@@ -343,12 +372,13 @@ object ArchiveEngine {
         }
     }
 
+    // 创建归档回调
     private open class CreateCallback(
         val items: List<SourceItem>,
-        private val onProgress: ((current: Int, total: Int, currentFile: String) -> Unit)? = null
+        private val onProgress: ((currentFile: String, fileBytesRead: Long, fileBytesTotal: Long, fileIndex: Int, fileCount: Int) -> Unit)? = null
     ) : IOutCreateCallback<IOutItemAllFormats> {
         var failed = false
-        private var completedCount = 0
+        // 获取条目信息
         override fun getItemInformation(
             index: Int,
             outItemFactory: OutItemFactory<IOutItemAllFormats>
@@ -365,29 +395,78 @@ object ArchiveEngine {
             return out
         }
 
+        // 获取输入流
         override fun getStream(index: Int): ISequentialInStream? {
             val it = items[index]
-            if (it.isDirectory) return null
-            return InputStreamSequentialInStream(FileInputStream(it.file))
+            if (it.isDirectory) {
+                onProgress?.invoke(it.pathInArchive, 0L, 0L, index, items.size)
+                return null
+            }
+            val total = it.file.length()
+            onProgress?.invoke(it.pathInArchive, 0L, total, index, items.size)
+            val counting = CountingInputStream(FileInputStream(it.file), total) { read ->
+                onProgress?.invoke(it.pathInArchive, read, total, index, items.size)
+            }
+            return InputStreamSequentialInStream(counting)
         }
 
+        // 设置总进度
         override fun setTotal(total: Long) {}
+        // 设置已完成进度
         override fun setCompleted(complete: Long) {}
+        // 设置操作结果
         override fun setOperationResult(operationResultOk: Boolean) {
             if (!operationResultOk) failed = true
-            completedCount++
-            if (completedCount <= items.size) {
-                val item = items[completedCount - 1]
-                onProgress?.invoke(completedCount, items.size, item.pathInArchive)
-            }
         }
     }
 
+    // 带密码的创建回调
     private class CreateCallbackWithPassword(
         items: List<SourceItem>,
         private val password: String,
-        onProgress: ((current: Int, total: Int, currentFile: String) -> Unit)? = null
+        onProgress: ((currentFile: String, fileBytesRead: Long, fileBytesTotal: Long, fileIndex: Int, fileCount: Int) -> Unit)? = null
     ) : CreateCallback(items, onProgress), ICryptoGetTextPassword {
+        // 返回归档密码
         override fun cryptoGetTextPassword(): String = password
+    }
+
+    // 计数输入流
+    private class CountingInputStream(
+        private val wrapped: InputStream,
+        val totalBytes: Long,
+        private val onRead: (Long) -> Unit
+    ) : InputStream() {
+        private var bytesRead = 0L
+        private var lastReportedPercent = -1
+        // 读取单个字节
+        override fun read(): Int {
+            val b = wrapped.read()
+            if (b != -1) {
+                bytesRead++
+                report()
+            }
+            return b
+        }
+        // 读取字节数组
+        override fun read(b: ByteArray, off: Int, len: Int): Int {
+            val n = wrapped.read(b, off, len)
+            if (n > 0) {
+                bytesRead += n
+                report()
+            }
+            return n
+        }
+        // 上报读取进度
+        private fun report() {
+            val percent = if (totalBytes > 0) ((bytesRead * 100 / totalBytes).toInt()) else 100
+            if (percent == 100 || percent != lastReportedPercent) {
+                lastReportedPercent = percent
+                onRead(bytesRead)
+            }
+        }
+        // 获取可用字节数
+        override fun available(): Int = wrapped.available()
+        // 关闭流
+        override fun close() = wrapped.close()
     }
 }

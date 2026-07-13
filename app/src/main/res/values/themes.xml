@@ -1,10 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <style name="Base.AppTheme" parent="Theme.Material3.DynamicColors.DayNight.NoActionBar" />
+    <style name="Base.AppTheme" parent="Theme.Material3.DayNight.NoActionBar" />
     <style name="AppTheme" parent="Base.AppTheme">
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar">?attr/isLightTheme</item>
+        <item name="android:windowActivityTransitions">true</item>
         <item name="listPreferredItemPaddingEnd">20dp</item>
         <item name="materialAlertDialogTheme">@style/ThemeOverlay.App.AlertDialog</item>
+    </style>
+
+    <style name="ThemeOverlay.App.Blue" parent="ThemeOverlay.Material3">
+        <item name="colorPrimary">@color/theme_blue_primary</item>
+        <item name="colorOnPrimary">@color/theme_blue_on_primary</item>
+        <item name="colorPrimaryContainer">@color/theme_blue_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/theme_blue_on_primary_container</item>
+    </style>
+
+    <style name="ThemeOverlay.App.Green" parent="ThemeOverlay.Material3">
+        <item name="colorPrimary">@color/theme_green_primary</item>
+        <item name="colorOnPrimary">@color/theme_green_on_primary</item>
+        <item name="colorPrimaryContainer">@color/theme_green_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/theme_green_on_primary_container</item>
+    </style>
+
+    <style name="ThemeOverlay.App.Purple" parent="ThemeOverlay.Material3">
+        <item name="colorPrimary">@color/theme_purple_primary</item>
+        <item name="colorOnPrimary">@color/theme_purple_on_primary</item>
+        <item name="colorPrimaryContainer">@color/theme_purple_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/theme_purple_on_primary_container</item>
+    </style>
+
+    <style name="ThemeOverlay.App.Orange" parent="ThemeOverlay.Material3">
+        <item name="colorPrimary">@color/theme_orange_primary</item>
+        <item name="colorOnPrimary">@color/theme_orange_on_primary</item>
+        <item name="colorPrimaryContainer">@color/theme_orange_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/theme_orange_on_primary_container</item>
     </style>
 
     <style name="ThemeOverlay.App.AlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
@@ -19,7 +49,6 @@
         <item name="android:textSize">13sp</item>
     </style>
 
-    <!-- Smaller checkbox used in the toolbar overflow menu (default minTouchTargetSize is 48dp) -->
     <style name="Widget.App.MenuCheckBox" parent="Widget.Material3.CompoundButton.CheckBox">
         <item name="android:minHeight">20dp</item>
         <item name="android:minWidth">20dp</item>

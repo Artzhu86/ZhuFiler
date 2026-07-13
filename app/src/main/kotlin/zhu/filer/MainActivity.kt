@@ -11,24 +11,22 @@ import android.widget.TextView
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
-import androidx.core.view.isVisible
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.android.material.appbar.MaterialToolbar
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.navigation.NavigationView
-import kotlinx.coroutines.Dispatchers
+import com.google.android.material.progressindicator.CircularProgressIndicator
+import com.skydoves.transformationlayout.onTransformationStartContainer
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.io.File
 import com.google.android.material.R as materialR
 import zhu.filer.databinding.ActivityMainBinding
 
+// 主界面
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
@@ -37,55 +35,65 @@ class MainActivity : AppCompatActivity() {
     private lateinit var navigationView: NavigationView
     private lateinit var recyclerView: RecyclerView
     private lateinit var toolbar: MaterialToolbar
-    private lateinit var progressBar: android.widget.ProgressBar
+    private lateinit var progressBar: CircularProgressIndicator
     private lateinit var fabAdd: FloatingActionButton
     private lateinit var fabAction: FloatingActionButton
     private lateinit var fabCancel: FloatingActionButton
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
 
     private lateinit var prefs: android.content.SharedPreferences
-    private lateinit var findHelper: FindHelper
-    private lateinit var adapter: FileListAdapter
+    private lateinit var searchHelper: SearchHelper
     private lateinit var browserController: FileBrowserController
     private val clipboard = ClipboardManager()
-    private lateinit var multiSelectController: MultiSelectController
     private lateinit var bookmarkManager: BookmarkManager
 
-    private var showHidden: Boolean = false
-    private var sortMode: SortMode = SortMode.NAME
     private var statsSubtitle: String? = null
 
     private val permissionHelper = PermissionHelper(this)
     private val backPressHandler = BackPressHandler(this)
     private val fabManager = FabManager(this)
 
-    private val containerColor: Int by lazy { getThemeColor(this, materialR.attr.colorPrimaryContainer) }
-    private var toolbarAlphaThreshold: Int = 0
+    private lateinit var toolbarScrollerController: ToolbarScrollerController
+    private lateinit var fileOpsController: FileOperationsController
+    private lateinit var fileOpener: FileOpener
+    private lateinit var menuController: MenuController
+    private lateinit var fileClickHandler: FileClickHandler
+    private lateinit var multiSelectController: MultiSelectController
 
-    private var lastSwipeSelectPos: Int? = null
     private var isFirstResume = true
+    private var lastThemeColor: String = ""
 
+    // 创建活动
     override fun onCreate(savedInstanceState: Bundle?) {
+        ThemeHelper.applyThemeColor(this)
+        onTransformationStartContainer()
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        lastThemeColor = ThemeHelper.getColorName(this)
+
+        window.sharedElementsUseOverlay = true
+
         WindowCompat.setDecorFitsSystemWindows(window, false)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             window.statusBarColor = Color.TRANSPARENT
+            window.navigationBarColor = Color.TRANSPARENT
+        }
+        val isDark = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
+            android.content.res.Configuration.UI_MODE_NIGHT_YES
+        WindowCompat.getInsetsController(window, window.decorView)?.apply {
+            isAppearanceLightStatusBars = !isDark
+            isAppearanceLightNavigationBars = !isDark
         }
 
         initViews()
         setupSwipeRefresh()
         prefs = getSharedPreferences("filer_prefs", MODE_PRIVATE)
-        showHidden = prefs.getBoolean("show_hidden", false)
-        sortMode = runCatching {
-            SortMode.valueOf(prefs.getString("sort_mode", SortMode.NAME.name) ?: SortMode.NAME.name)
-        }.getOrDefault(SortMode.NAME)
 
         setupToolbar()
 
-        bookmarkManager = BookmarkManager(this, drawerLayout, navigationView, prefs, ::loadDir)
+        bookmarkManager = BookmarkManager(this, drawerLayout, navigationView, prefs, ::navigateToDir)
         bookmarkManager.setup()
 
         browserController = FileBrowserController(
@@ -94,8 +102,8 @@ class MainActivity : AppCompatActivity() {
             recyclerView = recyclerView,
             swipeRefreshLayout = swipeRefreshLayout,
             prefs = prefs,
-            showHiddenProvider = { showHidden },
-            sortModeProvider = { sortMode },
+            showHiddenProvider = { menuController.isShowHidden() },
+            sortModeProvider = { menuController.getSortMode() },
             onDirLoaded = {
                 if (::bookmarkManager.isInitialized) {
                     bookmarkManager.updateMenu(browserController.currentDir)
@@ -104,33 +112,81 @@ class MainActivity : AppCompatActivity() {
                 updateToolbarTitle()
                 updateMultiSelectFabs()
                 fabManager.updatePasteButtons(clipboard)
+                toolbarScrollerController.animateToolbarColorOnDirSwitch()
             }
         )
 
-        setupRecyclerView()
+        toolbarScrollerController = ToolbarScrollerController(toolbar, recyclerView, this)
+        fileOpsController = FileOperationsController(
+            activity = this,
+            browserController = browserController,
+            lifecycleScope = lifecycleScope,
+            progressBar = progressBar,
+            fabManager = fabManager,
+            clipboard = clipboard,
+            loadDir = ::loadDir,
+            refreshDir = ::refreshDir
+        )
+
+        fileOpener = FileOpener(
+            activity = this,
+            browserController = browserController,
+            lifecycleScope = lifecycleScope,
+            progressBar = progressBar
+        )
+
+        fileClickHandler = FileClickHandler(
+            activity = this,
+            recyclerView = recyclerView,
+            browserController = browserController,
+            fileOpener = fileOpener,
+            fileOpsController = fileOpsController,
+            bookmarkManager = bookmarkManager,
+            multiSelectProvider = { multiSelectController },
+            clipboard = clipboard,
+            fabManager = fabManager,
+            toolbarScrollerController = toolbarScrollerController,
+            loadDir = { dir, scrollToTop -> loadDir(dir, scrollToTop = scrollToTop) },
+            exitMultiSelect = ::exitMultiSelect,
+            updateToolbarTitle = ::updateToolbarTitle,
+            updateMultiSelectFabs = ::updateMultiSelectFabs
+        )
+        fileClickHandler.setup()
         binding.fastScroller.attach(recyclerView)
-        setupSwipeToSelect()
         setupFabs()
 
-        browserController.init(adapter)
+        browserController.init(fileClickHandler.adapter)
 
-        findHelper = FindHelper(this, { browserController.currentDir }, ::loadDir, ::locateFile)
+        searchHelper = SearchHelper(this, { browserController.currentDir }, ::navigateToDir, ::locateFile)
+
+        menuController = MenuController(
+            activity = this,
+            prefs = prefs,
+            browserController = browserController,
+            bookmarkManager = bookmarkManager,
+            searchHelper = searchHelper,
+            onShowHiddenChanged = { browserController.refresh() },
+            onExitMultiSelect = ::exitMultiSelect,
+            onExit = { finish() }
+        )
+        menuController.initPrefs()
 
         multiSelectController = MultiSelectController(
             activity = this,
-            adapter = adapter,
+            adapter = fileClickHandler.adapter,
             canNavigateUp = { browserController.canNavigateUp() },
             getCurrentDir = { browserController.currentDir },
-            loadDir = ::loadDir,
+            loadDir = { loadDir(it) },
             progressBar = progressBar,
             clipboardManager = clipboard,
             onClipboardChanged = { fabManager.updatePasteButtons(clipboard) },
             onExitMultiSelect = { updateMultiSelectFabs() },
             onCompress = { files ->
                 showCompressDialog(this, files, browserController.currentDir) { outputFile, format, password ->
-                    performCompress(files, outputFile, format, password)
+                    fileOpsController.performCompress(files, outputFile, format, password)
                 }
-            }
+            },
+            onRefresh = { browserController.refresh(animate = false) }
         )
 
         backPressHandler.setup(
@@ -157,11 +213,11 @@ class MainActivity : AppCompatActivity() {
         } ?: initLoad()
 
         toolbar.post {
-            toolbarAlphaThreshold = toolbar.height
-            toolbar.setBackgroundColor(Color.TRANSPARENT)
+            toolbarScrollerController.onToolbarReady()
         }
     }
 
+    // 初始化视图
     private fun initViews() {
         drawerLayout = binding.drawerLayout
         navigationView = binding.navigationView
@@ -173,6 +229,7 @@ class MainActivity : AppCompatActivity() {
         fabCancel = binding.fabCancel
     }
 
+    // 设置工具栏
     private fun setupToolbar() {
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -184,167 +241,26 @@ class MainActivity : AppCompatActivity() {
                 val child = toolbar.getChildAt(i)
                 if (child is TextView) {
                     child.setOnClickListener {
-                        showNavigateDialog(this@MainActivity, browserController.currentDisplayPath(), ::loadDir, prefs)
+                        showNavigateDialog(this@MainActivity, browserController.currentDisplayPath(), ::navigateToDir, prefs)
                     }
                 }
             }
         }
-        val statusBarHeight = getStatusBarHeight()
+        val statusBarHeight = getStatusBarHeight(this)
         val actionBarHeight = toolbar.layoutParams.height
         toolbar.layoutParams.height = actionBarHeight + statusBarHeight
         toolbar.setPadding(0, statusBarHeight, 0, 0)
         toolbar.setBackgroundColor(Color.TRANSPARENT)
         toolbar.setSubtitleTextAppearance(this, R.style.ToolbarSubtitle)
         toolbar.post {
-            supportActionBar?.title = Environment.getExternalStorageDirectory().absolutePath
+            supportActionBar?.title = Environment.getExternalStorageDirectory().absolutePath + "/"
         }
     }
 
-    private fun getStatusBarHeight(): Int {
-        var result = 0
-        val resourceId = resources.getIdentifier("status_bar_height", "dimen", "android")
-        if (resourceId > 0) {
-            result = resources.getDimensionPixelSize(resourceId)
-        }
-        return result
-    }
-    
-    private fun setupRecyclerView() {
-        adapter = FileListAdapter(
-            onItemClick = { file, pos ->
-                lastSwipeSelectPos = null
-                if (multiSelectController.isInMultiSelectMode()) {
-                    multiSelectController.toggleSelection(pos)
-                    updateToolbarTitle()
-                    updateMultiSelectFabs()
-                    if (!adapter.hasSelection()) exitMultiSelect()
-                    return@FileListAdapter
-                }
-                if (pos == 0 && browserController.canNavigateUp()) {
-                    browserController.navigateUp()
-                    return@FileListAdapter
-                }
-                val item = adapter.getFileItem(pos) ?: return@FileListAdapter
-                if (browserController.isInArchive()) {
-                    if (item.isDirectory) {
-                        browserController.navigateArchiveTo(item.entryPath!!)
-                    } else if (item.encrypted) {
-                        val cached = browserController.getArchivePassword()
-                        if (cached != null) {
-                            extractAndOpenArchiveEntry(item, cached)
-                        } else {
-                            showArchivePasswordDialog(this@MainActivity) { password ->
-                                browserController.cacheArchivePassword(password)
-                                extractAndOpenArchiveEntry(item, password)
-                            }
-                        }
-                    } else {
-                        extractAndOpenArchiveEntry(item, null)
-                    }
-                    return@FileListAdapter
-                }
-                if (item.isDirectory) {
-                    browserController.saveScrollPosition()
-                    loadDir(item.file, scrollToTop = true)
-                } else {
-                    previewFile(this@MainActivity, item.file, onOpenArchive = { f -> openArchive(f) })
-                }
-            },
-            onItemLongClick = { file, pos ->
-                lastSwipeSelectPos = null
-                if (multiSelectController.isInMultiSelectMode()) {
-                    if (pos == 0 && browserController.canNavigateUp()) return@FileListAdapter true
-                    multiSelectController.showBatchOperationMenu()
-                    return@FileListAdapter true
-                }
-                if (pos == 0 && browserController.canNavigateUp()) return@FileListAdapter true
-                val item = adapter.getFileItem(pos) ?: return@FileListAdapter true
-                if (browserController.isInArchive()) {
-                    showArchiveItemOps(
-                        this@MainActivity, item,
-                        browserController.getArchivePassword(),
-                        { fileItem, pwd -> extractAndOpenArchiveEntry(fileItem, pwd) },
-                        { pwd -> browserController.cacheArchivePassword(pwd) }
-                    )
-                    return@FileListAdapter true
-                }
-                showOps(
-                    activity = this@MainActivity,
-                    currentDir = browserController.currentDir,
-                    loadDir = ::loadDir,
-                    file = item.file,
-                    onCopyCut = { f, isCut ->
-                        clipboard.set(f, isCut)
-                        fabManager.updatePasteButtons(clipboard)
-                    },
-                    onBookmarkToggle = { path ->
-                        bookmarkManager.toggleBookmarkWithConfirm(path)
-                    },
-                    isBookmarked = if (item.isDirectory) bookmarkManager.isBookmarked(item.file.absolutePath) else false,
-                    onOpenArchive = { f -> openArchive(f) },
-                    onCompress = { f ->
-                        showCompressDialog(this@MainActivity, listOf(f), browserController.currentDir) { outputFile, format, password ->
-                            performCompress(listOf(f), outputFile, format, password)
-                        }
-                    }
-                )
-                true
-            }
-        )
-        recyclerView.adapter = adapter
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.itemAnimator = null
-
-        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                if (toolbarAlphaThreshold == 0) return
-                val offset = recyclerView.computeVerticalScrollOffset()
-                val alpha = (offset.toFloat() / toolbarAlphaThreshold).coerceIn(0f, 1f)
-                val color = Color.argb(
-                    (alpha * 255).toInt(),
-                    Color.red(containerColor),
-                    Color.green(containerColor),
-                    Color.blue(containerColor)
-                )
-                toolbar.setBackgroundColor(color)
-            }
-        })
-    }
-
-    private fun setupSwipeToSelect() {
-        val callback = SwipeToSelectCallback(adapter) { position, willBeSelected ->
-            if (position == 0 && browserController.canNavigateUp()) return@SwipeToSelectCallback
-            if (!willBeSelected) {
-                lastSwipeSelectPos = null
-                if (multiSelectController.isInMultiSelectMode()) {
-                    multiSelectController.toggleSelection(position)
-                    updateToolbarTitle()
-                    updateMultiSelectFabs()
-                    if (!adapter.hasSelection()) exitMultiSelect()
-                }
-                return@SwipeToSelectCallback
-            }
-            val lastPos = lastSwipeSelectPos
-            if (lastPos != null && lastPos != position && multiSelectController.isInMultiSelectMode()) {
-                val range = if (lastPos < position) lastPos..position else position..lastPos
-                range.forEach { adapter.selectPosition(it) }
-            } else {
-                if (!multiSelectController.isInMultiSelectMode()) {
-                    multiSelectController.selectPosition(position)
-                } else {
-                    multiSelectController.toggleSelection(position)
-                }
-            }
-            lastSwipeSelectPos = position
-            updateToolbarTitle()
-            updateMultiSelectFabs()
-        }
-        ItemTouchHelper(callback).attachToRecyclerView(recyclerView)
-    }
-
+    // 设置悬浮按钮
     private fun setupFabs() {
         fabAdd.setOnClickListener {
-            showCreate(this, browserController.currentDir) { dir, highlightPath ->
+            showCreateDialog(this, browserController.currentDir) { dir, highlightPath ->
                 lifecycleScope.launch { refreshDir(dir, highlightPath) }
             }
         }
@@ -354,7 +270,7 @@ class MainActivity : AppCompatActivity() {
             clipboard = clipboard,
             targetDirProvider = { browserController.currentDir },
             onPaste = { files, isMove, overwrite ->
-                lifecycleScope.launch { performPaste(files, browserController.currentDir, isMove, overwrite) }
+                lifecycleScope.launch { fileOpsController.performPaste(files, browserController.currentDir, isMove, overwrite) }
             },
             onCancel = {
                 clipboard.clear()
@@ -362,89 +278,17 @@ class MainActivity : AppCompatActivity() {
             }
         )
         fabManager.setMultiSelectActions(
-            onSelectAll = {
-                val startPos = if (browserController.canNavigateUp()) 1 else 0
-                for (i in startPos until adapter.itemCount) {
-                    adapter.selectPosition(i)
-                }
-                updateToolbarTitle()
-                updateMultiSelectFabs()
-            },
-            onDeselect = {
-                adapter.clearSelection()
-                exitMultiSelect()
-            }
+            onSelectAll = { fileClickHandler.selectAll() },
+            onDeselect = { fileClickHandler.deselectAll() }
         )
     }
 
+    // 更新多选悬浮按钮
     private fun updateMultiSelectFabs() {
         fabManager.updateMultiSelectButtons(multiSelectController.isInMultiSelectMode())
     }
 
-    private suspend fun performPaste(files: List<File>, targetDir: File, isMove: Boolean, overwrite: Boolean) {
-        browserController.saveScrollPosition()
-        val savedPos = browserController.getCurrentScrollPosition()
-
-        progressBar.isVisible = true
-        var successCount = 0
-        var skipCount = 0
-        var failCount = 0
-        for (file in files) {
-            val targetFile = File(targetDir, file.name)
-            try {
-                if (targetFile.exists()) {
-                    if (overwrite) {
-                        if (targetFile.isDirectory) targetFile.deleteRecursively() else targetFile.delete()
-                    } else {
-                        skipCount++
-                        continue
-                    }
-                }
-                val opSuccess = if (isMove) {
-                    if (file.renameTo(targetFile)) {
-                        true
-                    } else {
-                        if (file.isDirectory) {
-                            file.copyRecursively(targetFile, overwrite = true)
-                            file.deleteRecursively()
-                        } else {
-                            file.copyTo(targetFile, overwrite = true)
-                            file.delete()
-                        }
-                        true
-                    }
-                } else {
-                    if (file.isDirectory) {
-                        file.copyRecursively(targetFile, overwrite = overwrite)
-                    } else {
-                        file.copyTo(targetFile, overwrite = overwrite)
-                    }
-                    true
-                }
-                if (opSuccess) successCount++ else failCount++
-            } catch (e: Exception) {
-                failCount++
-            }
-        }
-        progressBar.isVisible = false
-        val msgRes = when {
-            failCount == 0 && skipCount == 0 -> if (isMove) R.string.move_success else R.string.copy_success
-            failCount == 0 && skipCount > 0 -> if (isMove) R.string.move_success_skip else R.string.copy_success_skip
-            failCount > 0 -> R.string.paste_result_partial
-            else -> R.string.paste_failed
-        }
-        val msg = when (msgRes) {
-            R.string.move_success, R.string.copy_success -> getString(msgRes, successCount)
-            R.string.move_success_skip, R.string.copy_success_skip -> getString(msgRes, successCount, skipCount)
-            R.string.paste_result_partial -> getString(msgRes, successCount, failCount)
-            else -> getString(msgRes)
-        }
-        toast(this, msg)
-        clipboard.clear()
-        fabManager.updatePasteButtons(clipboard)
-        loadDir(targetDir, scrollToTop = false, restorePosition = savedPos)
-    }
-
+    // 设置下拉刷新
     private fun setupSwipeRefresh() {
         val parent = recyclerView.parent as androidx.constraintlayout.widget.ConstraintLayout
         val params = recyclerView.layoutParams as androidx.constraintlayout.widget.ConstraintLayout.LayoutParams
@@ -459,7 +303,7 @@ class MainActivity : AppCompatActivity() {
                 getThemeColor(this@MainActivity, com.google.android.material.R.attr.colorSurface)
             )
             setColorSchemeColors(
-                getThemeColor(this@MainActivity, materialR.attr.colorPrimary),
+                getThemeColor(this@MainActivity, android.R.attr.colorPrimary),
                 getThemeColor(this@MainActivity, materialR.attr.colorSecondary),
                 getThemeColor(this@MainActivity, materialR.attr.colorTertiary)
             )
@@ -469,16 +313,18 @@ class MainActivity : AppCompatActivity() {
         parent.addView(swipeRefreshLayout)
     }
 
+    // 退出多选
     private fun exitMultiSelect() {
-        lastSwipeSelectPos = null
+        fileClickHandler.resetSwipeSelect()
         multiSelectController.exitMultiSelect()
         updateToolbarTitle()
         updateMultiSelectFabs()
     }
 
+    // 更新工具栏标题
     private fun updateToolbarTitle() {
         if (multiSelectController.isInMultiSelectMode()) {
-            val count = adapter.getSelectedFiles().size
+            val count = fileClickHandler.getSelectedFiles().size
             val stats = statsSubtitle ?: ""
             supportActionBar?.subtitle = if (stats.isNotEmpty()) "$stats   " + getString(R.string.selected_count, count) else getString(R.string.selected_count, count)
         } else {
@@ -486,6 +332,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // 保存状态
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putString("cached_path", browserController.currentDir.absolutePath)
@@ -501,85 +348,32 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onPrepareOptionsMenu(menu: Menu): Boolean {
-        menu.findItem(Menu.FIRST + 5)?.title = getBookmarkMenuTitle()
-        return true
-    }
+    // 准备菜单
+    override fun onPrepareOptionsMenu(menu: Menu): Boolean = menuController.onPrepareOptionsMenu(menu)
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menu.add(Menu.NONE, Menu.FIRST, Menu.NONE, getString(R.string.refresh)).setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
-        menu.add(Menu.NONE, Menu.FIRST + 1, Menu.NONE, getString(R.string.search)).setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
-        menu.add(Menu.NONE, Menu.FIRST + 2, Menu.NONE, getString(R.string.search_result)).setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
-        val hiddenItem = menu.add(Menu.NONE, Menu.FIRST + 4, Menu.NONE, getString(R.string.show_hidden))
-        hiddenItem.setCheckable(true)
-        hiddenItem.isChecked = showHidden
-        hiddenItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
-        val bookmarkItem = menu.add(Menu.NONE, Menu.FIRST + 5, Menu.NONE, getBookmarkMenuTitle())
-        bookmarkItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
-        menu.add(Menu.NONE, Menu.FIRST + 6, Menu.NONE, getString(R.string.sort_by)).setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
-        menu.add(Menu.NONE, Menu.FIRST + 3, Menu.NONE, getString(R.string.exit)).setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
-        return true
-    }
+    // 创建菜单
+    override fun onCreateOptionsMenu(menu: Menu): Boolean = menuController.onCreateOptionsMenu(menu)
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            Menu.FIRST -> {
-                exitMultiSelect()
-                browserController.refresh()
-            }
-            Menu.FIRST + 1 -> findHelper.showSearchDialog()
-            Menu.FIRST + 2 -> findHelper.showLastResult()
-            Menu.FIRST + 3 -> finish()
-            Menu.FIRST + 4 -> {
-                showHidden = !showHidden
-                item.isChecked = showHidden
-                prefs.edit().putBoolean("show_hidden", showHidden).apply()
-                browserController.refresh()
-            }
-            Menu.FIRST + 5 -> {
-                val path = browserController.currentDir.absolutePath
-                bookmarkManager.toggleBookmarkWithConfirm(path) {
-                    invalidateOptionsMenu()
-                }
-            }
-            Menu.FIRST + 6 -> showSortDialog()
-        }
-        return true
-    }
+    // 菜单项选择
+    override fun onOptionsItemSelected(item: MenuItem): Boolean = menuController.onOptionsItemSelected(item)
 
-    private fun getBookmarkMenuTitle(): String {
-        val isBookmarked = bookmarkManager.isBookmarked(browserController.currentDir.absolutePath)
-        return getString(if (isBookmarked) R.string.remove_current_bookmark else R.string.add_current_bookmark)
-    }
-
-    private fun showSortDialog() {
-        val modes = SortMode.entries
-        val labels = modes.map { getString(it.labelRes) }.toTypedArray()
-        val current = modes.indexOf(sortMode)
-        val dialog = MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.sort_by)
-            .setSingleChoiceItems(labels, current) { dialog, which ->
-                sortMode = modes[which]
-                prefs.edit().putString("sort_mode", sortMode.name).apply()
-                browserController.refresh()
-                dialog.dismiss()
-            }
-            .setNegativeButton(R.string.cancel, null)
-            .create()
-        dialog.show()
-        dialog.listView?.let { applySingleChoiceColors(it) }
-    }
-
+    // 销毁
     override fun onDestroy() {
         super.onDestroy()
-        findHelper.dismiss()
+        searchHelper.dismiss()
     }
 
+    // 恢复
     override fun onResume() {
         super.onResume()
         if (!isFirstResume && ::browserController.isInitialized) {
+            val currentColor = ThemeHelper.getColorName(this)
+            if (currentColor != lastThemeColor) {
+                recreate()
+                return
+            }
             exitMultiSelect()
-            browserController.refresh()
+            browserController.refresh(animate = false)
         }
         isFirstResume = false
         if (::toolbar.isInitialized) {
@@ -587,6 +381,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // 窗口焦点变化
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
         if (hasFocus && ::toolbar.isInitialized) {
@@ -594,6 +389,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // 初始加载
     private fun initLoad() {
         permissionHelper.requestStoragePermission(
             onGranted = { loadDir(browserController.currentDir, scrollToTop = true) },
@@ -601,80 +397,31 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    private fun loadDir(dir: File, showLoading: Boolean = true, scrollToTop: Boolean = false, restorePosition: Int? = null) {
+    // 加载目录
+    private fun loadDir(dir: File, showLoading: Boolean = true, scrollToTop: Boolean = true, restorePosition: Int? = null) {
         exitMultiSelect()
         browserController.loadDir(dir, showLoading, scrollToTop, restorePosition)
         bookmarkManager.updateMenu(dir)
-        supportActionBar?.title = dir.absolutePath
+        supportActionBar?.title = browserController.currentDisplayPath()
     }
 
+    // 导航加载目录
+    private suspend fun navigateToDir(dir: File) {
+        browserController.saveScrollPosition()
+        val savedPos = browserController.getScrollPosition(dir.absolutePath)
+        loadDir(dir, scrollToTop = false, restorePosition = savedPos)
+    }
+
+    // 刷新目录
     private fun refreshDir(dir: File, highlightPath: String?) {
         exitMultiSelect()
         browserController.loadDir(dir, showLoading = true, scrollToTop = false, restorePosition = null, highlightPath = highlightPath)
         bookmarkManager.updateMenu(dir)
-        supportActionBar?.title = dir.absolutePath
+        supportActionBar?.title = browserController.currentDisplayPath()
     }
 
+    // 定位文件
     fun locateFile(file: File) {
         browserController.locateFile(file)
-    }
-
-    private fun openArchive(file: File) {
-        browserController.loadArchive(file, onPasswordRequired = {
-            showArchivePasswordDialog(this) { pwd ->
-                browserController.loadArchive(file, pwd)
-            }
-        })
-    }
-
-    private fun extractAndOpenArchiveEntry(item: FileItem, password: String?) {
-        val archiveFile = browserController.getArchiveFile() ?: return
-        lifecycleScope.launch {
-            progressBar.isVisible = true
-            try {
-                val tempDir = File(cacheDir, "archive_extract").apply { mkdirs() }
-                val tempFile = File(tempDir, item.displayName)
-                if (tempFile.exists()) tempFile.delete()
-                val success = withContext(Dispatchers.IO) {
-                    ArchiveEngine.extractEntry(archiveFile, item.entryPath!!, password, tempFile)
-                }
-                if (success && tempFile.exists()) {
-                    previewFile(this@MainActivity, tempFile)
-                } else {
-                    toast(this@MainActivity, getString(R.string.archive_extract_failed))
-                }
-            } catch (e: WrongArchivePasswordException) {
-                toast(this@MainActivity, getString(R.string.wrong_password))
-            } catch (e: Exception) {
-                toast(this@MainActivity, getString(R.string.archive_extract_failed))
-            } finally {
-                progressBar.isVisible = false
-            }
-        }
-    }
-
-    private fun performCompress(sources: List<File>, outputFile: File, format: CompressFormat, password: String?) {
-        val (progressDialog, updateProgress) = createCompressProgressDialog(this)
-        progressDialog.show()
-
-        lifecycleScope.launch {
-            try {
-                val success = withContext(Dispatchers.IO) {
-                    ArchiveEngine.createArchive(outputFile, sources, browserController.currentDir, format, password) { current, total, fileName ->
-                        runOnUiThread { updateProgress(current, total, fileName) }
-                    }
-                }
-                if (success) {
-                    toast(this@MainActivity, getString(R.string.compress_success))
-                    loadDir(browserController.currentDir)
-                } else {
-                    toast(this@MainActivity, getString(R.string.compress_failed))
-                }
-            } catch (e: Exception) {
-                toast(this@MainActivity, getString(R.string.compress_failed))
-            } finally {
-                progressDialog.dismiss()
-            }
-        }
     }
 }

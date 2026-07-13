@@ -14,6 +14,7 @@ import androidx.interpolator.view.animation.FastOutLinearInInterpolator
 import androidx.interpolator.view.animation.LinearOutSlowInInterpolator
 import androidx.recyclerview.widget.RecyclerView
 
+// 快速滚动条视图
 class FastScroller @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
@@ -47,9 +48,10 @@ class FastScroller @JvmOverloads constructor(
     private val handler = Handler(Looper.getMainLooper())
     private val autoHideRunnable = Runnable { hide() }
 
+    // 初始化
     init {
         thumbPaint.color = getThemeColor(
-            context, com.google.android.material.R.attr.colorPrimary
+            context, android.R.attr.colorPrimary
         )
         trackPaint.color = getThemeColor(
             context, com.google.android.material.R.attr.colorSurfaceVariant
@@ -58,6 +60,7 @@ class FastScroller @JvmOverloads constructor(
         translationX = trackWidthPx.toFloat()
     }
 
+    // 绑定RecyclerView
     fun attach(recyclerView: RecyclerView) {
         boundRecyclerView = recyclerView
         recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
@@ -77,6 +80,7 @@ class FastScroller @JvmOverloads constructor(
         updateThumb()
     }
 
+    // 滚动激活处理
     private fun onScrollActive() {
         if (!isShowing && scrollRange - scrollExtent > 0) {
             show()
@@ -85,6 +89,7 @@ class FastScroller @JvmOverloads constructor(
         handler.postDelayed(autoHideRunnable, autoHideDelayMs)
     }
 
+    // 显示滚动条
     private fun show() {
         isShowing = true
         handler.removeCallbacks(autoHideRunnable)
@@ -97,6 +102,7 @@ class FastScroller @JvmOverloads constructor(
             .start()
     }
 
+    // 隐藏滚动条
     private fun hide() {
         isShowing = false
         animate().cancel()
@@ -108,6 +114,7 @@ class FastScroller @JvmOverloads constructor(
             .start()
     }
 
+    // 更新滑块位置
     private fun updateThumb() {
         val rv = boundRecyclerView ?: return
         scrollRange = rv.computeVerticalScrollRange()
@@ -117,6 +124,7 @@ class FastScroller @JvmOverloads constructor(
         invalidate()
     }
 
+    // 计算滑块高度
     private fun thumbHeight(): Float {
         val h = height.toFloat()
         if (scrollRange <= 0) return thumbMinHeightPx.toFloat()
@@ -124,6 +132,7 @@ class FastScroller @JvmOverloads constructor(
         return (h * ratio).coerceIn(thumbMinHeightPx.toFloat(), h)
     }
 
+    // 计算滑块顶部位置
     private fun thumbTop(): Float {
         val h = height.toFloat()
         val range = (scrollRange - scrollExtent).coerceAtLeast(0)
@@ -132,6 +141,7 @@ class FastScroller @JvmOverloads constructor(
         return (scrollOffset.toFloat() / range.toFloat()) * maxTop
     }
 
+    // 绘制滚动条
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         if (scrollRange - scrollExtent <= 0) return
@@ -164,6 +174,7 @@ class FastScroller @JvmOverloads constructor(
         canvas.drawPath(path, thumbPaint)
     }
 
+    // 处理触摸事件
     override fun onTouchEvent(event: MotionEvent): Boolean {
         val rv = boundRecyclerView ?: return false
         if (visibility != VISIBLE) return false
@@ -192,6 +203,7 @@ class FastScroller @JvmOverloads constructor(
         return super.onTouchEvent(event)
     }
 
+    // 滚动到指定位置
     private fun scrollTo(touchY: Float, rv: RecyclerView, range: Int) {
         val h = height.toFloat()
         val thumbH = thumbHeight()

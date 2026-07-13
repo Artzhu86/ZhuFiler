@@ -11,6 +11,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 
+// 权限请求助手
 class PermissionHelper(private val activity: AppCompatActivity) {
 
     private var onGranted: (() -> Unit)? = null
@@ -36,6 +37,7 @@ class PermissionHelper(private val activity: AppCompatActivity) {
         }
     }
 
+    // 请求存储权限
     fun requestStoragePermission(onGranted: () -> Unit, onDenied: () -> Unit) {
         this.onGranted = onGranted
         this.onDenied = onDenied

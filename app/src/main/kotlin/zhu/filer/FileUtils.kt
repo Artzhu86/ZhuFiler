@@ -6,10 +6,13 @@ import android.content.SharedPreferences
 import android.net.Uri
 import android.text.format.Formatter
 import android.util.TypedValue
+import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import android.webkit.MimeTypeMap
+import android.widget.ArrayAdapter
 import android.widget.LinearLayout
 import android.widget.TableLayout
 import android.widget.TableRow
@@ -26,12 +29,14 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
+// 排序模式枚举
 enum class SortMode(val labelRes: Int) {
     NAME(R.string.sort_by_name),
     SIZE(R.string.sort_by_size),
     DATE(R.string.sort_by_date)
 }
 
+// 获取排序比较器
 fun getSortComparator(mode: SortMode): Comparator<File> {
     val byDir = compareByDescending<File> { it.isDirectory }
     return when (mode) {
@@ -47,12 +52,14 @@ private const val RECENT_MAX_COUNT = 10
 private const val ELLIPSIZE_START = 0
 private const val ELLIPSIZE_MIDDLE = 1
 
+// 应用工具栏标题
 fun applyToolbarTitle(toolbar: Toolbar, text: String, mode: Int = ELLIPSIZE_MIDDLE) {
     toolbar.title = text
     toolbar.setTag(R.id.tag_toolbar_title, text to mode)
     refreshToolbarTitle(toolbar)
 }
 
+// 刷新工具栏标题显示
 fun refreshToolbarTitle(toolbar: Toolbar) {
     toolbar.post {
         @Suppress("UNCHECKED_CAST")
@@ -71,12 +78,15 @@ fun refreshToolbarTitle(toolbar: Toolbar) {
     }
 }
 
+// 按路径设置工具栏标题
 fun applyToolbarTitlePath(toolbar: Toolbar, path: String) =
     applyToolbarTitle(toolbar, path, ELLIPSIZE_START)
 
+// 按名称设置工具栏标题
 fun applyToolbarTitleName(toolbar: Toolbar, name: String) =
     applyToolbarTitle(toolbar, name, ELLIPSIZE_MIDDLE)
 
+// 获取工具栏标题文本视图
 private fun getToolbarTitleTextView(toolbar: Toolbar): TextView? {
     return try {
         val field = Toolbar::class.java.getDeclaredField("mTitleTextView")
@@ -87,58 +97,73 @@ private fun getToolbarTitleTextView(toolbar: Toolbar): TextView? {
     }
 }
 
+// 创建文件列表项
 fun createFileItem(context: Context, file: File): FileItem {
     val timeStr = SimpleDateFormat(context.getString(R.string.date_format), Locale.getDefault()).format(Date(file.lastModified()))
     val sizeStr = Formatter.formatFileSize(context, file.length())
     return FileItem(file, file.name, FileType.getIconRes(file), "$timeStr  $sizeStr")
 }
 
+// 显示提示消息
 fun toast(context: Context, msg: String, duration: Int = Toast.LENGTH_SHORT) {
     Toast.makeText(context, msg, duration).show()
 }
 
+// dp转px
 fun dpToPx(context: Context, dp: Int): Int =
     TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp.toFloat(), context.resources.displayMetrics).toInt()
 
+// 获取主题颜色
 fun getThemeColor(context: Context, attr: Int, fallback: Int = android.graphics.Color.TRANSPARENT): Int {
     val tv = TypedValue()
     return if (context.theme.resolveAttribute(attr, tv, true)) tv.data else fallback
 }
 
+// 获取状态栏高度
+fun getStatusBarHeight(context: Context): Int {
+    val resourceId = context.resources.getIdentifier("status_bar_height", "dimen", "android")
+    return if (resourceId > 0) context.resources.getDimensionPixelSize(resourceId) else 0
+}
+
+// 创建对话框容器
 fun createDialogContainer(context: Context): LinearLayout {
-    return LinearLayout(context).apply {
-        orientation = LinearLayout.VERTICAL
-        setPadding(dpToPx(context, 16), dpToPx(context, 16), dpToPx(context, 16), 0)
-    }
+    return LayoutInflater.from(context)
+        .inflate(R.layout.dialog_container, null) as LinearLayout
 }
 
+// 创建文本输入框
 fun createInput(context: Context, initial: String = ""): Pair<TextInputLayout, TextInputEditText> {
-    val tl = TextInputLayout(context).apply {
-        hint = null
-        isHintEnabled = false
-        layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-    }
-    val et = TextInputEditText(tl.context).apply {
-        setSingleLine(true)
-        setText(initial)
-        setSelection(initial.length)
-    }
-    tl.addView(et)
+    val tl = LayoutInflater.from(context)
+        .inflate(R.layout.dialog_text_input, null) as TextInputLayout
+    val et = tl.findViewById<TextInputEditText>(R.id.dialog_input_edit)
+    et.setText(initial)
+    et.setSelection(initial.length)
     return tl to et
 }
 
+// 创建带主题色的单选列表适配器
+fun createSingleChoiceAdapter(context: Context, items: Array<String>): ArrayAdapter<String> {
+    val primaryColor = getThemeColor(context, android.R.attr.colorPrimary)
+    return object : ArrayAdapter<String>(context, android.R.layout.simple_list_item_single_choice, items) {
+        override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+            val view = super.getView(position, convertView, parent)
+            val ctv = view.findViewById<android.widget.CheckedTextView>(android.R.id.text1)
+            ctv?.checkMarkTintList = android.content.res.ColorStateList.valueOf(primaryColor)
+            return view
+        }
+    }
+}
+
+// 创建密码输入框
 fun createPasswordInput(context: Context, hint: String): Pair<TextInputLayout, TextInputEditText> {
-    val tl = TextInputLayout(context).apply {
-        this.hint = hint
-        layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-    }
-    val et = TextInputEditText(tl.context).apply {
-        setSingleLine(true)
-    }
-    tl.addView(et)
+    val tl = LayoutInflater.from(context)
+        .inflate(R.layout.dialog_password_input, null) as TextInputLayout
+    tl.hint = hint
+    val et = tl.findViewById<TextInputEditText>(R.id.dialog_password_edit)
     return tl to et
 }
 
+// 聚焦并显示键盘
 fun focusAndShowKeyboard(editText: TextInputEditText, dialog: AlertDialog) {
     editText.requestFocus()
     dialog.window?.apply {
@@ -151,19 +176,23 @@ fun focusAndShowKeyboard(editText: TextInputEditText, dialog: AlertDialog) {
     }
 }
 
+// 判断文件名是否合法
 fun isValid(name: String) = name.isNotBlank() && name.matches(Regex("^[^\\\\/:*?\"<>|]+\$"))
 
+// 获取目录统计信息
 fun getDirStats(dir: File): Pair<Int, Int> {
     val files = runCatching { dir.listFiles() }.getOrDefault(emptyArray()) ?: emptyArray()
     val dirs = files.count { it.isDirectory }
     return dirs to (files.size - dirs)
 }
 
+// 获取最近访问目录
 fun getRecentDirs(prefs: SharedPreferences): List<String> {
     val str = prefs.getString("recent_dirs", "") ?: ""
     return str.split(RECENT_SEPARATOR).filter { it.isNotEmpty() }.take(RECENT_MAX_COUNT)
 }
 
+// 更新最近访问目录
 fun updateRecentDirs(prefs: SharedPreferences, path: String) {
     val current = getRecentDirs(prefs).toMutableList()
     current.remove(path)
@@ -172,6 +201,7 @@ fun updateRecentDirs(prefs: SharedPreferences, path: String) {
     prefs.edit().putString("recent_dirs", current.joinToString(RECENT_SEPARATOR)).apply()
 }
 
+// 分享文件
 fun shareFile(context: Context, file: File) {
     try {
         val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
@@ -186,6 +216,7 @@ fun shareFile(context: Context, file: File) {
     }
 }
 
+// 用系统应用打开文件
 fun openFileWithSystem(context: Context, file: File) {
     try {
         val uri = FileProvider.getUriForFile(
@@ -206,60 +237,8 @@ fun openFileWithSystem(context: Context, file: File) {
     }
 }
 
-fun previewFile(
-    activity: AppCompatActivity,
-    file: File,
-    forceChoose: Boolean = false,
-    onOpenArchive: ((File) -> Unit)? = null
-) {
-    if (!file.canRead()) { toast(activity, activity.getString(R.string.cannot_read)); return }
-    val isArchive = FileType.isArchive(file)
-    if (forceChoose) {
-        val options = mutableListOf(
-            activity.getString(R.string.open),
-            activity.getString(R.string.text),
-            activity.getString(R.string.image)
-        )
-        if (isArchive) options.add(activity.getString(R.string.archive))
-        val dialog = MaterialAlertDialogBuilder(activity)
-            .setTitle(R.string.open_with)
-            .setItems(options.toTypedArray()) { _, which ->
-                when (which) {
-                    0 -> openFileWithSystem(activity, file)
-                    1 -> launchTextEditor(activity, file)
-                    2 -> launchImagePreview(activity, file)
-                    3 -> onOpenArchive?.invoke(file)
-                }
-            }
-            .setNegativeButton(R.string.cancel, null)
-            .create()
-        dialog.show()
-        dialog.listView?.let { applySelectableEffectToListView(it) }
-        return
-    }
-    when {
-        isArchive && onOpenArchive != null -> onOpenArchive.invoke(file)
-        FileType.isImage(file) -> launchImagePreview(activity, file)
-        FileType.isText(file) -> launchTextEditor(activity, file)
-        else -> openFileWithSystem(activity, file)
-    }
-}
-
-private fun launchTextEditor(activity: AppCompatActivity, file: File) {
-    val intent = android.content.Intent(activity, TextEditorActivity::class.java).apply {
-        putExtra(TextEditorActivity.EXTRA_FILE_PATH, file.absolutePath)
-    }
-    activity.startActivity(intent)
-}
-
-private fun launchImagePreview(activity: AppCompatActivity, file: File) {
-    val intent = android.content.Intent(activity, ImagePreviewActivity::class.java).apply {
-        putExtra(ImagePreviewActivity.EXTRA_FILE_PATH, file.absolutePath)
-    }
-    activity.startActivity(intent)
-}
-
-fun showDetails(activity: AppCompatActivity, file: File) {
+// 显示文件详情对话框
+fun showDetailsDialog(activity: AppCompatActivity, file: File) {
     val rows = mutableListOf<Pair<String, String>>()
     rows.add(activity.getString(R.string.name_label) to file.name)
     rows.add(activity.getString(R.string.path_label) to (file.parentFile?.absolutePath ?: file.absolutePath))
@@ -272,40 +251,26 @@ fun showDetails(activity: AppCompatActivity, file: File) {
         rows.add(activity.getString(R.string.file_count_label) to files.toString())
     }
 
-    val padding = dpToPx(activity, 16)
-    val table = TableLayout(activity).apply {
-        setPadding(padding, padding, padding, padding)
-        setColumnStretchable(1, true)
-    }
+    val table = LayoutInflater.from(activity)
+        .inflate(R.layout.dialog_properties, null) as TableLayout
     for ((label, value) in rows) {
-        val labelView = TextView(activity).apply {
-            text = label
-            setPadding(0, dpToPx(activity, 4), dpToPx(activity, 16), dpToPx(activity, 4))
-            textSize = 14f
-            layoutParams = TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT)
-        }
+        val row = LayoutInflater.from(activity)
+            .inflate(R.layout.item_property_row, table, false) as TableRow
+        val labelView = row.findViewById<TextView>(R.id.property_label)
+        labelView.text = label
         val rippleBg = android.util.TypedValue().let { tv ->
             if (activity.theme.resolveAttribute(android.R.attr.selectableItemBackground, tv, true))
                 androidx.core.content.ContextCompat.getDrawable(activity, tv.resourceId)
             else null
         }
-        val valueView = TextView(activity).apply {
-            text = value
-            setPadding(0, dpToPx(activity, 4), 0, dpToPx(activity, 4))
-            textSize = 14f
-            background = rippleBg
-            setSingleLine(false)
-            setOnLongClickListener {
-                val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                clipboard.setPrimaryClip(android.content.ClipData.newPlainText("value", value))
-                toast(activity, activity.getString(R.string.copied_to_clipboard))
-                true
-            }
-            layoutParams = TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1f)
-        }
-        val row = TableRow(activity).apply {
-            addView(labelView)
-            addView(valueView)
+        val valueView = row.findViewById<TextView>(R.id.property_value)
+        valueView.text = value
+        valueView.background = rippleBg
+        valueView.setOnLongClickListener {
+            val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+            clipboard.setPrimaryClip(android.content.ClipData.newPlainText("value", value))
+            toast(activity, activity.getString(R.string.copied_to_clipboard))
+            true
         }
         table.addView(row)
     }

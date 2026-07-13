@@ -1,29 +1,36 @@
+// 插件配置
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
 }
 
+// 安卓配置
 android {
     namespace 'zhu.filer'
     compileSdk 36
 
+    // 默认配置
     defaultConfig {
         applicationId 'zhu.filer'
         minSdk 25
         targetSdk 36
-        versionCode 11
-        versionName "2.0"
+        versionCode 12
+        versionName "2.1"
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+        // NDK配置
         ndk {
             abiFilters 'arm64-v8a'
         }
     }
 
+    // 构建特性
     buildFeatures {
         viewBinding true
     }
 
+    // 签名配置
     signingConfigs {
+        // 发布签名
         release {
             storeFile file("../artzhu.keystore")
             storePassword "artzhu"
@@ -32,10 +39,13 @@ android {
         }
     }
 
+    // 构建类型
     buildTypes {
+        // 调试构建
         debug {
             signingConfig signingConfigs.release
         }
+        // 发布构建
         release {
             minifyEnabled true
             signingConfig signingConfigs.release
@@ -43,22 +53,27 @@ android {
         }
     }
 
+    // 编译选项
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
         coreLibraryDesugaringEnabled true
     }
+    // Kotlin配置
     kotlin {
+        // 编译器选项
         compilerOptions {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
         }
     }
 }
 
+// 依赖配置
 dependencies {
     implementation 'androidx.core:core-ktx:1.13.1'
     implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'com.google.android.material:material:1.12.0'
+    implementation 'com.github.skydoves:transformationlayout:1.1.6'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.8.7'
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
@@ -66,6 +81,10 @@ dependencies {
     implementation 'com.github.bumptech.glide:glide:4.16.0'
 
     implementation 'io.getstream:photoview:1.0.3'
+
+    implementation 'androidx.media3:media3-exoplayer:1.4.1'
+    implementation 'androidx.media3:media3-ui:1.4.1'
+    implementation 'androidx.media3:media3-common:1.4.1'
 
     implementation 'com.sorrowblue.sevenzipjbinding:7-Zip-JBinding-4Android:16.02-2.03'
 

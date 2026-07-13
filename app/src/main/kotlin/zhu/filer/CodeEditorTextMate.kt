@@ -15,6 +15,7 @@ import io.github.rosemoe.sora.langs.textmate.registry.provider.AssetsFileResolve
 import io.github.rosemoe.sora.widget.schemes.EditorColorScheme
 import org.eclipse.tm4e.core.registry.IThemeSource
 
+// 代码编辑器TextMate配置
 object CodeEditorTextMate {
 
     private const val LIGHT_THEME = "quietlight"
@@ -44,6 +45,7 @@ object CodeEditorTextMate {
         "lua" to "source.lua"
     )
 
+    // 初始化TextMate
     @Synchronized
     fun init(context: Context) {
         if (!initialized) {
@@ -78,12 +80,14 @@ object CodeEditorTextMate {
         }
     }
 
+    // 应用主题
     fun applyTheme(context: Context) {
         val isDark = (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
             Configuration.UI_MODE_NIGHT_YES
         ThemeRegistry.getInstance().setTheme(if (isDark) DARK_THEME else LIGHT_THEME)
     }
 
+    // 根据扩展名获取语言
     fun languageForExtension(ext: String): Language {
         val scope = extToScope[ext.lowercase()]
         if (scope != null) {
@@ -97,10 +101,12 @@ object CodeEditorTextMate {
         return EmptyLanguage()
     }
 
+    // 创建颜色方案
     fun createColorScheme(context: Context): EditorColorScheme {
         return TextMateColorScheme.create(ThemeRegistry.getInstance())
     }
 
+    // 应用编辑器颜色
     fun applyEditorColors(editor: io.github.rosemoe.sora.widget.CodeEditor, context: Context) {
         val scheme = editor.colorScheme
         scheme.setColor(
@@ -117,7 +123,7 @@ object CodeEditorTextMate {
         )
         scheme.setColor(
             EditorColorScheme.LINE_NUMBER_CURRENT,
-            getThemeColor(context, materialR.attr.colorPrimary)
+            getThemeColor(context, android.R.attr.colorPrimary)
         )
         scheme.setColor(
             EditorColorScheme.WHOLE_BACKGROUND,
@@ -129,7 +135,7 @@ object CodeEditorTextMate {
         )
         scheme.setColor(
             EditorColorScheme.SELECTION_INSERT,
-            getThemeColor(context, materialR.attr.colorPrimary)
+            getThemeColor(context, android.R.attr.colorPrimary)
         )
         scheme.setColor(
             EditorColorScheme.MATCHED_TEXT_BACKGROUND,
