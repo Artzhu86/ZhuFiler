@@ -3,13 +3,192 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ZhuFiler - 烛文件 | Android 文件管理器</title>
-  <meta name="description" content="一个有趣且专业的 Android 文件管理器，Material You 设计，代码高亮，手势操作">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📁</text></svg>">
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <title>烛文件</title>
+  <meta name="description" content="Kotlin 编写的开源 Android 文件管理器，Material You 动态主题，解压压缩、文本编辑、多媒体播放、APK 查看、Shizuku 扩展">
+  <link rel="icon" type="image/png" href="icon.png">
+  <link rel="apple-touch-icon" href="icon.png">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mdui@2/mdui.min.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap">
+  <script src="https://cdn.jsdelivr.net/npm/mdui@2/mdui.global.min.js"></script>
+  <style>
+    :root {
+      --zf-font-sans: 'Noto Sans SC', system-ui, -apple-system, sans-serif;
+      --zf-radius-pill: var(--mdui-shape-corner-full);
+      --zf-radius-card: var(--mdui-shape-corner-large);
+      --zf-gradient-brand: linear-gradient(135deg, rgb(var(--mdui-color-primary)), rgb(var(--mdui-color-tertiary)));
+      --zf-shadow-lift: 0 8px 24px rgba(0,0,0,.10);
+      --zf-shadow-float: 0 16px 40px rgba(0,0,0,.14);
+      --zf-ease-standard: cubic-bezier(.2,0,0,1);
+      --zf-ease-emphasized: cubic-bezier(.3,0,0,1);
+      --zf-ease-spring: cubic-bezier(.34,1.56,.64,1);
+    }
+    html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;height:100%}
+    body{margin:0;padding:0;box-sizing:border-box;font-family:var(--zf-font-sans);background:rgb(var(--mdui-color-surface));color:rgb(var(--mdui-color-on-surface));transition:background-color .4s var(--zf-ease-standard),color .4s var(--zf-ease-standard);height:100%}
+    h1,h2,h3,h4,h5,h6,p,figure,section,footer,div{margin:0;padding:0;box-sizing:border-box}
+    #app{height:100%}
+    ::-webkit-scrollbar{width:10px;height:10px}
+    ::-webkit-scrollbar-track{background:rgb(var(--mdui-color-surface-container-low))}
+    ::-webkit-scrollbar-thumb{background:rgb(var(--mdui-color-outline-variant));border-radius:var(--zf-radius-pill);border:2px solid rgb(var(--mdui-color-surface-container-low))}
+    ::-webkit-scrollbar-thumb:hover{background:rgb(var(--mdui-color-outline))}
+    ::selection{background:rgb(var(--mdui-color-primary-container));color:rgb(var(--mdui-color-on-primary-container))}
+    a{color:rgb(var(--mdui-color-primary));text-decoration:none;transition:color .2s var(--zf-ease-standard)}
+    a:hover{text-decoration:underline}
+    .container{max-width:1200px;margin:0 auto;padding:0 24px}
+    .zf-layout-main{display:block}
+    .section{padding:72px 0}
+    .grid{display:grid;gap:24px}
+    .grid-auto{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+    .hero{min-height:78vh;display:flex;align-items:center;position:relative;overflow:hidden;padding:48px 0 64px}
+    .hero-bg{position:absolute;inset:0;z-index:0;pointer-events:none}
+    .hero-bg::before,.hero-bg::after{content:'';position:absolute;border-radius:50%;filter:blur(60px)}
+    .hero-bg::before{width:600px;height:600px;left:50%;top:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,rgb(var(--mdui-color-primary-container)) 0%,transparent 70%);opacity:.6;animation:float-slow 12s ease-in-out infinite}
+    .hero-bg::after{width:440px;height:440px;left:50%;top:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,rgb(var(--mdui-color-tertiary-container)) 0%,transparent 70%);opacity:.5;animation:float-slow 15s ease-in-out infinite reverse}
+    @keyframes float-slow{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.08)}}
+    .hero-content{position:relative;z-index:2}
+    .hero-title{font-size:var(--mdui-typescale-headline-medium-size);font-weight:700;line-height:var(--mdui-typescale-headline-medium-line-height);letter-spacing:var(--mdui-typescale-headline-medium-tracking);margin-bottom:16px;background:var(--zf-gradient-brand);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .hero-desc{font-size:var(--mdui-typescale-body-large-size);font-weight:var(--mdui-typescale-body-large-weight);line-height:var(--mdui-typescale-body-large-line-height);letter-spacing:var(--mdui-typescale-body-large-tracking);color:rgb(var(--mdui-color-on-surface-variant));margin-bottom:32px}
+    .hero-actions{display:flex;gap:16px;flex-wrap:wrap}
+    .hero-actions mdui-button{--mdui-button-radius:var(--zf-radius-pill)}
+    .feature-card{padding:32px;border-radius:var(--zf-radius-card);height:100%;position:relative;overflow:hidden;transition:transform .35s var(--zf-ease-emphasized),box-shadow .35s var(--zf-ease-standard)}
+    .feature-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--zf-gradient-brand);transform:scaleX(0);transform-origin:left;transition:transform .4s var(--zf-ease-emphasized)}
+    .feature-card::after{content:'';position:absolute;top:-50%;right:-50%;width:200%;height:200%;background:radial-gradient(circle,rgb(var(--mdui-color-primary-container)) 0%,transparent 50%);opacity:0;transition:opacity .4s var(--zf-ease-standard);pointer-events:none}
+    .feature-card:hover{transform:translateY(-6px);box-shadow:var(--zf-shadow-float)}
+    .feature-card:hover::before{transform:scaleX(1)}
+    .feature-card:hover::after{opacity:.4}
+    .feature-card-icon{font-size:24px!important;color:rgb(var(--mdui-color-primary));margin-bottom:16px;display:block;transition:transform .4s var(--zf-ease-spring)}
+    .feature-card:hover .feature-card-icon{transform:scale(1.15) rotate(-6deg)}
+    .feature-card h3{font-size:var(--mdui-typescale-title-medium-size);font-weight:var(--mdui-typescale-title-medium-weight);line-height:var(--mdui-typescale-title-medium-line-height);letter-spacing:var(--mdui-typescale-title-medium-tracking);margin-bottom:8px}
+    .feature-card p{font-size:var(--mdui-typescale-body-medium-size);font-weight:var(--mdui-typescale-body-medium-weight);line-height:var(--mdui-typescale-body-medium-line-height);letter-spacing:var(--mdui-typescale-body-medium-tracking);color:rgb(var(--mdui-color-on-surface-variant))}
+    .zf-footer{background:rgb(var(--mdui-color-surface-container));padding:28px 24px;margin-top:80px;border-top:1px solid rgb(var(--mdui-color-outline-variant))}
+    .zf-footer-inner{max-width:1200px;margin:0 auto}
+    .zf-footer-brand{font-size:var(--mdui-typescale-label-large-size);font-weight:var(--mdui-typescale-label-large-weight);line-height:var(--mdui-typescale-label-large-line-height);letter-spacing:var(--mdui-typescale-label-large-tracking);color:rgb(var(--mdui-color-primary));display:flex;align-items:center;gap:8px}
+    .zf-footer a{font-size:var(--mdui-typescale-label-medium-size);font-weight:var(--mdui-typescale-label-medium-weight);line-height:var(--mdui-typescale-label-medium-line-height);letter-spacing:var(--mdui-typescale-label-medium-tracking);color:rgb(var(--mdui-color-on-surface-variant))}
+    .zf-footer a:hover{color:rgb(var(--mdui-color-primary));text-decoration:none}
+    @keyframes fadeInUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    @keyframes scaleIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+    .animate-in{opacity:0}
+    .animate-in.in-view{animation:fadeInUp .7s var(--zf-ease-emphasized) forwards}
+    .animate-fade.in-view{animation:fadeIn .6s var(--zf-ease-standard) forwards}
+    .animate-scale.in-view{animation:scaleIn .6s var(--zf-ease-spring) forwards}
+    .delay-1{animation-delay:.1s}
+    .delay-2{animation-delay:.2s}
+    .delay-3{animation-delay:.3s}
+    .delay-4{animation-delay:.4s}
+    @media (prefers-reduced-motion:reduce){
+      .animate-in,.animate-fade,.animate-scale{opacity:1!important;animation:none!important}
+      .hero-bg::before,.hero-bg::after{animation:none!important}
+      html{scroll-behavior:auto}
+    }
+    @media (max-width:768px){
+      .hero{min-height:70vh;padding:32px 0 48px}
+      .section{padding:48px 0}
+      .container{padding:0 20px}
+      .feature-card{padding:24px}
+      .hero-actions{justify-content:center}
+    }
+    @media (max-width:480px){
+      .zf-footer-inner{flex-direction:column;gap:14px!important;align-items:flex-start!important}
+    }
+  </style>
 </head>
 <body>
   <div id="app"></div>
-  <script type="module" src="/src/pages/home.ts"></script>
+  <script type="module">
+    mdui.setColorScheme('#1976D2')
+    const app = document.getElementById('app')
+    app.innerHTML = `
+      <mdui-layout full-height>
+        <mdui-top-app-bar variant="small" scroll-behavior="elevate" scroll-target=".zf-layout-main" style="padding-left:16px;padding-right:16px">
+          <mdui-top-app-bar-title>烛文件</mdui-top-app-bar-title>
+          <div style="flex-grow:1"></div>
+          <mdui-button-icon icon="dark_mode" id="theme-toggle"></mdui-button-icon>
+        </mdui-top-app-bar>
+
+        <mdui-layout-main class="zf-layout-main">
+          <div id="main-content"></div>
+          <footer class="zf-footer">
+            <div class="zf-footer-inner">
+              <div style="font-size:var(--mdui-typescale-body-large-size);font-weight:var(--mdui-typescale-body-large-weight);line-height:var(--mdui-typescale-body-large-line-height);color:rgb(var(--mdui-color-on-surface))">&copy; 2026 烛光 · MIT</div>
+            </div>
+          </footer>
+        </mdui-layout-main>
+    </mdui-layout>
+  `
+
+    document.getElementById('main-content').innerHTML = `
+      <section class="hero">
+        <div class="hero-bg"></div>
+        <div class="container">
+          <div class="hero-content" style="max-width:680px;margin:0 auto;text-align:center">
+            <img src="icon.png" alt="烛文件" class="animate-scale" style="width:128px;height:128px;border-radius:28px;margin:0 auto 24px;display:block;box-shadow:var(--zf-shadow-float)">
+            <h1 class="hero-title animate-in">烛文件</h1>
+            <p class="hero-desc animate-in delay-1">Kotlin 编写的开源 Android 文件管理器<br>开源免费，美观强大</p>
+            <div class="hero-actions animate-in delay-3" style="justify-content:center">
+              <mdui-button href="https://github.com/Artzhu86/ZhuFiler/releases/latest" target="_blank" rel="noopener" icon="download" variant="filled">下载 APK</mdui-button>
+              <mdui-button href="https://github.com/Artzhu86/ZhuFiler" target="_blank" rel="noopener" variant="outlined">GitHub</mdui-button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container">
+          <div class="grid grid-auto">
+            <mdui-card class="feature-card animate-in delay-1" variant="filled" clickable>
+              <mdui-icon class="feature-card-icon" name="verified"></mdui-icon>
+              <h3>开源</h3>
+              <p>MIT 协议，代码透明可审计，接受社区贡献</p>
+            </mdui-card>
+            <mdui-card class="feature-card animate-in delay-2" variant="filled" clickable>
+              <mdui-icon class="feature-card-icon" name="payment"></mdui-icon>
+              <h3>免费</h3>
+              <p>无广告、无内购，所有功能永久免费无限制</p>
+            </mdui-card>
+            <mdui-card class="feature-card animate-in delay-3" variant="filled" clickable>
+              <mdui-icon class="feature-card-icon" name="palette"></mdui-icon>
+              <h3>美观</h3>
+              <p>Material You 动态主题，支持深色模式与多套配色</p>
+            </mdui-card>
+            <mdui-card class="feature-card animate-in delay-4" variant="filled" clickable>
+              <mdui-icon class="feature-card-icon" name="extension"></mdui-icon>
+              <h3>强大</h3>
+              <p>集成解压、编辑、播放、APK，以及 Shizuku 支持</p>
+            </mdui-card>
+          </div>
+        </div>
+      </section>
+    `
+
+    // 主题切换
+    const themeToggle = document.getElementById('theme-toggle')
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const savedTheme = localStorage.getItem('zhufile-theme')
+    const isDark = savedTheme ? savedTheme === 'dark' : prefersDark
+    applyTheme(isDark)
+    themeToggle.addEventListener('click', () => {
+      const dark = !document.documentElement.classList.contains('mdui-theme-dark')
+      applyTheme(dark)
+      localStorage.setItem('zhufile-theme', dark ? 'dark' : 'light')
+    })
+    function applyTheme(dark) {
+      document.documentElement.classList.toggle('mdui-theme-dark', dark)
+      themeToggle.setAttribute('icon', dark ? 'light_mode' : 'dark_mode')
+    }
+
+    // 滚动进入视口动画
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in-view')
+          observer.unobserve(entry.target)
+        }
+      })
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' })
+    requestAnimationFrame(() => {
+      document.querySelectorAll('.animate-in, .animate-fade, .animate-scale').forEach(el => observer.observe(el))
+    })
+  </script>
 </body>
 </html>

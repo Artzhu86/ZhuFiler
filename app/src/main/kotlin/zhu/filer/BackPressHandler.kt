@@ -6,6 +6,10 @@ import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
+import zhu.filer.browser.FileBrowserController
+import zhu.filer.browser.navigateUp
+import zhu.filer.operation.MultiSelectController
+import zhu.filer.util.toast
 
 // 返回键处理
 class BackPressHandler(private val activity: AppCompatActivity) {
@@ -29,9 +33,6 @@ class BackPressHandler(private val activity: AppCompatActivity) {
                 if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
                     drawerLayout.closeDrawer(GravityCompat.START)
                 } else if (browserController.canNavigateUp()) {
-                    if (multiSelectController.isInMultiSelectMode()) {
-                        onExitMultiSelect()
-                    }
                     browserController.navigateUp()
                 } else if (backPressedOnce) {
                     onExit()

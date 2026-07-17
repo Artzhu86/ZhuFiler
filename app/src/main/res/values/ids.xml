@@ -2,6 +2,7 @@
 <resources>
     <item name="tag_view" type="id" />
     <item name="tag_toolbar_title" type="id" />
+    <item name="tag_audio_art" type="id" />
     <item name="file_item_container" type="id" />
     <item name="file_item_card" type="id" />
     <item name="file_item_thumb" type="id" />

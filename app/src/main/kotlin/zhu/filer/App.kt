@@ -2,6 +2,7 @@ package zhu.filer
 
 import android.app.Application
 import androidx.appcompat.app.AppCompatDelegate
+import zhu.filer.ui.ThemeHelper
 
 // 应用入口
 class App : Application() {

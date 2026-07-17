@@ -14,8 +14,8 @@ android {
         applicationId 'zhu.filer'
         minSdk 25
         targetSdk 36
-        versionCode 12
-        versionName "2.1"
+        versionCode 13
+        versionName "2.2"
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         // NDK配置
         ndk {
@@ -95,6 +95,9 @@ dependencies {
     implementation platform('io.github.rosemoe:editor-bom:0.23.7')
     implementation 'io.github.rosemoe:editor'
     implementation 'io.github.rosemoe:language-textmate'
+
+    implementation 'dev.rikka.shizuku:api:13.1.5'
+    implementation 'dev.rikka.shizuku:provider:13.1.5'
 
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
 }

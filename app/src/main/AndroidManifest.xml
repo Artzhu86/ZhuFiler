@@ -6,6 +6,8 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" tools:ignore="QueryAllPackagesPermission" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <application
         android:name=".App"
@@ -27,6 +29,14 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
+        <provider
+            android:name="rikka.shizuku.ShizukuProvider"
+            android:authorities="${applicationId}.shizuku"
+            android:multiprocess="false"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.INTERACT_ACROSS_USERS_FULL" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -38,28 +48,28 @@
         </activity>
 
         <activity
-            android:name=".TextEditorActivity"
+            android:name=".editor.TextEditorActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize"
             android:theme="@style/AppTheme" />
 
         <activity
-            android:name=".ImageViewerActivity"
+            android:name=".media.ImageViewerActivity"
             android:exported="false"
             android:theme="@style/AppTheme" />
 
         <activity
-            android:name=".VideoPlayerActivity"
+            android:name=".media.VideoPlayerActivity"
             android:exported="false"
             android:theme="@style/AppTheme" />
 
         <activity
-            android:name=".AudioPlayerActivity"
+            android:name=".media.AudioPlayerActivity"
             android:exported="false"
             android:theme="@style/AppTheme" />
 
         <activity
-            android:name=".PreferencesActivity"
+            android:name=".settings.PreferencesActivity"
             android:exported="false"
             android:theme="@style/AppTheme" />
     </application>

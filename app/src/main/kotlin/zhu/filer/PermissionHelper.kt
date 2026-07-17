@@ -10,6 +10,8 @@ import android.provider.Settings
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import rikka.shizuku.Shizuku
+import zhu.filer.util.ShizukuManager
 
 // 权限请求助手
 class PermissionHelper(private val activity: AppCompatActivity) {
@@ -23,7 +25,7 @@ class PermissionHelper(private val activity: AppCompatActivity) {
         if (result.values.all { it }) {
             onGranted?.invoke()
         } else {
-            onDenied?.invoke()
+            tryShizukuFallback()
         }
     }
 
@@ -31,6 +33,14 @@ class PermissionHelper(private val activity: AppCompatActivity) {
         ActivityResultContracts.StartActivityForResult()
     ) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && Environment.isExternalStorageManager()) {
+            onGranted?.invoke()
+        } else {
+            tryShizukuFallback()
+        }
+    }
+
+    private val permissionResultListener = Shizuku.OnRequestPermissionResultListener { _, grantResult ->
+        if (grantResult == PackageManager.PERMISSION_GRANTED) {
             onGranted?.invoke()
         } else {
             onDenied?.invoke()
@@ -58,5 +68,34 @@ class PermissionHelper(private val activity: AppCompatActivity) {
                 requestStorage.launch(perms)
             }
         }
+    }
+
+    // 尝试通过Shizuku获取权限
+    private fun tryShizukuFallback() {
+        val state = ShizukuManager.getPermissionState()
+        when (state) {
+            ShizukuManager.PermissionState.NotInstalled -> {
+                onDenied?.invoke()
+            }
+            ShizukuManager.PermissionState.NotRunning -> {
+                val launchIntent = activity.packageManager.getLaunchIntentForPackage("moe.shizuku.privileged.api")
+                if (launchIntent != null) {
+                    activity.startActivity(launchIntent)
+                }
+                onDenied?.invoke()
+            }
+            ShizukuManager.PermissionState.Granted -> {
+                onGranted?.invoke()
+            }
+            ShizukuManager.PermissionState.NoPermission -> {
+                ShizukuManager.addPermissionResultListener(permissionResultListener)
+                ShizukuManager.requestPermission(0)
+            }
+        }
+    }
+
+    // 销毁时移除监听
+    fun onDestroy() {
+        ShizukuManager.removePermissionResultListener(permissionResultListener)
     }
 }
