@@ -64,20 +64,25 @@ document.getElementById('main-content').innerHTML = `
   </section>
 `
 
+const html = document.documentElement
 const themeToggle = document.getElementById('theme-toggle')
-const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-const savedTheme = localStorage.getItem('zhufile-theme')
-const isDark = savedTheme ? savedTheme === 'dark' : prefersDark
-applyTheme(isDark)
-themeToggle.addEventListener('click', () => {
-  const dark = !document.documentElement.classList.contains('mdui-theme-dark')
-  applyTheme(dark)
-  localStorage.setItem('zhufile-theme', dark ? 'dark' : 'light')
-})
+const prefersDark = window.matchMedia('(prefers-color-scheme: dark)')
+
 function applyTheme(dark) {
-  document.documentElement.classList.toggle('mdui-theme-dark', dark)
-  themeToggle.setAttribute('icon', dark ? 'light_mode' : 'dark_mode')
+  if (dark) html.classList.add('mdui-theme-dark')
+  else html.classList.remove('mdui-theme-dark')
+  themeToggle?.setAttribute('icon', dark ? 'light_mode' : 'dark_mode')
 }
+
+applyTheme(prefersDark.matches)
+
+prefersDark.addEventListener('change', (e) => {
+  applyTheme(e.matches)
+})
+
+themeToggle?.addEventListener('click', () => {
+  applyTheme(!html.classList.contains('mdui-theme-dark'))
+})
 
 const topBar = document.getElementById('top-bar')
 const layoutMain = document.querySelector('.zf-layout-main')
