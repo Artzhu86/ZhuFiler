@@ -29,8 +29,8 @@ document.getElementById('main-content').innerHTML = `
         <h1 class="hero-title animate-in">烛文件</h1>
         <p class="hero-desc animate-in delay-1">Kotlin 编写的开源 Android 文件管理器<br>开源免费，美观强大</p>
         <div class="hero-actions animate-in delay-3" style="justify-content:center">
-          <mdui-button href="https://github.com/Artzhu86/ZhuFiler/releases/latest" target="_blank" rel="noopener" icon="download" variant="filled">下载 APK</mdui-button>
-          <mdui-button href="https://github.com/Artzhu86/ZhuFiler" target="_blank" rel="noopener" variant="outlined">GitHub</mdui-button>
+          <mdui-button id="download-btn" icon="download" variant="filled">下载 APK</mdui-button>
+          <mdui-button href="https://github.com/Artzhu86/ZhuFiler" target="_blank" rel="noopener" icon="code" variant="outlined">GitHub</mdui-button>
         </div>
       </div>
     </div>
@@ -97,4 +97,16 @@ const observer = new IntersectionObserver((entries) => {
 }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' })
 requestAnimationFrame(() => {
   document.querySelectorAll('.animate-in, .animate-scale').forEach(el => observer.observe(el))
+})
+
+document.getElementById('download-btn').addEventListener('click', async () => {
+  try {
+    const res = await fetch('https://api.github.com/repos/Artzhu86/ZhuFiler/releases/latest')
+    const data = await res.json()
+    const apk = data.assets.find(a => a.name.endsWith('.apk'))
+    if (apk) window.location.href = apk.browser_download_url
+    else window.open('https://github.com/Artzhu86/ZhuFiler/releases/latest', '_blank')
+  } catch {
+    window.open('https://github.com/Artzhu86/ZhuFiler/releases/latest', '_blank')
+  }
 })
