@@ -23,7 +23,7 @@ h1,h2,h3,h4,h5,h6,p,section,footer,div{margin:0;padding:0;box-sizing:border-box}
 .section{padding:72px 0}
 .grid{display:grid;gap:24px}
 .grid-auto{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
-.hero{min-height:78vh;display:flex;align-items:center;position:relative;padding:96px 0 64px}
+.hero{min-height:78vh;display:flex;align-items:center;position:relative;overflow:hidden;padding:96px 0 64px}
 .hero-bg{position:absolute;inset:0;z-index:0;pointer-events:none}
 .hero-bg::before,.hero-bg::after{content:'';position:absolute;border-radius:50%;filter:blur(60px)}
 .hero-bg::before{width:600px;height:600px;left:50%;top:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,rgb(var(--mdui-color-primary-container)) 0%,transparent 70%);opacity:.6;animation:float-slow 12s ease-in-out infinite}
