@@ -4,10 +4,18 @@ const app = document.getElementById('app')
 app.innerHTML = `
   <mdui-layout full-height>
     <mdui-top-app-bar id="top-bar" variant="small" style="padding-left:16px;padding-right:16px">
+      <mdui-button-icon icon="menu" id="drawer-toggle"></mdui-button-icon>
       <mdui-top-app-bar-title>烛文件</mdui-top-app-bar-title>
       <div style="flex-grow:1"></div>
       <mdui-button-icon icon="dark_mode" id="theme-toggle"></mdui-button-icon>
     </mdui-top-app-bar>
+
+    <mdui-navigation-drawer id="nav-drawer" modal close-on-esc close-on-overlay-click>
+      <mdui-list style="padding:8px">
+        <mdui-list-item icon="info" data-nav="top" active rounded>简介</mdui-list-item>
+        <mdui-list-item icon="code" end-icon="open_in_new" href="https://github.com/Artzhu86/ZhuFiler" target="_blank" rel="noopener" rounded>GitHub</mdui-list-item>
+      </mdui-list>
+    </mdui-navigation-drawer>
 
     <mdui-layout-main class="zf-layout-main">
       <div id="main-content"></div>
@@ -36,7 +44,7 @@ document.getElementById('main-content').innerHTML = `
     </div>
   </section>
 
-  <section class="section">
+  <section class="section" id="features">
     <div class="container">
       <div class="grid grid-auto">
         <mdui-card class="feature-card animate-in delay-1" variant="filled" clickable>
@@ -91,6 +99,23 @@ function updateTopBar() {
 }
 layoutMain.addEventListener('scroll', updateTopBar, { passive: true })
 updateTopBar()
+
+const navDrawer = document.getElementById('nav-drawer')
+document.getElementById('drawer-toggle').addEventListener('click', () => {
+  navDrawer.open = !navDrawer.open
+})
+navDrawer.querySelectorAll('mdui-list-item').forEach(item => {
+  item.addEventListener('click', () => {
+    navDrawer.open = false
+    if (item.dataset.nav) {
+      navDrawer.querySelectorAll('mdui-list-item[data-nav]').forEach(i => i.removeAttribute('active'))
+      item.setAttribute('active', '')
+      if (item.dataset.nav === 'top') {
+        layoutMain.scrollTo({ top: 0, behavior: 'smooth' })
+      }
+    }
+  })
+})
 
 const observer = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
