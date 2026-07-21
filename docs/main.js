@@ -33,7 +33,7 @@ document.getElementById('main-content').innerHTML = `
     <div class="hero-bg"></div>
     <div class="container">
       <div class="hero-content" style="max-width:680px;margin:0 auto;text-align:center">
-        <img src="icon.png" alt="烛文件" class="animate-scale" style="width:128px;max-width:100%;height:auto;aspect-ratio:1;border-radius:28px;margin:0 auto 24px;display:block;box-shadow:var(--zf-shadow-float)">
+        <img src="icon.png" alt="烛文件" class="animate-scale" style="width:140px;max-width:100%;height:auto;aspect-ratio:1;margin:0 auto 24px;display:block">
         <h1 class="hero-title animate-in">烛文件</h1>
         <p class="hero-desc animate-in delay-1">Kotlin 编写的开源 Android 文件管理器<br>开源免费，美观强大</p>
         <div class="hero-actions animate-in delay-3" style="justify-content:center">
