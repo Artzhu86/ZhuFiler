@@ -5,7 +5,7 @@
 [中文](README.md) English
 
 An open-source Android file manager written in Kotlin  
-Open-source&free Beautiful&powerful
+Open-source free, Beautiful powerful
 
 [![GitHub Release](https://img.shields.io/github/v/release/Artzhu86/ZhuFiler?style=for-the-badge&logo=github)](https://github.com/Artzhu86/ZhuFiler/releases)
 [![License](https://img.shields.io/github/license/Artzhu86/ZhuFiler?style=for-the-badge&logo=github)](https://github.com/Artzhu86/ZhuFiler/blob/main/LICENSE)
