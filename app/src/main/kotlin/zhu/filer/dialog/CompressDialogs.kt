@@ -69,6 +69,7 @@ fun showCompressDialog(
             topMargin = dpToPx(activity, 8)
         }
     }
+    // 压缩格式选项
     data class RadioOpt(val format: ArchiveFormat, val radio: MaterialRadioButton)
     val opts = listOf("zip", "7z", "tar.gz", "tar.xz").map { label ->
         val radio = activity.layoutInflater.inflate(R.layout.item_compress_format, radioGroup, false) as MaterialRadioButton

@@ -47,6 +47,7 @@ class ToolbarScrollerController(
     // 设置滚动监听
     fun setupScrollListener() {
         recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            // 列表滚动回调
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 if (toolbarAlphaThreshold == 0) return
                 val offset = recyclerView.computeVerticalScrollOffset()

@@ -84,6 +84,7 @@ fun createInput(context: Context, initial: String = ""): Pair<TextInputLayout, T
 fun createSingleChoiceAdapter(context: Context, items: Array<String>): ArrayAdapter<String> {
     val primaryColor = getThemeColor(context, android.R.attr.colorPrimary)
     return object : ArrayAdapter<String>(context, android.R.layout.simple_list_item_single_choice, items) {
+        // 获取视图
         override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
             val view = super.getView(position, convertView, parent)
             val ctv = view.findViewById<android.widget.CheckedTextView>(android.R.id.text1)

@@ -28,7 +28,9 @@ fun applySelectableEffectToListView(listView: ListView) {
         child?.applySelectableEffect()
     }
     listView.setOnHierarchyChangeListener(object : ViewGroup.OnHierarchyChangeListener {
+        // 子视图添加回调
         override fun onChildViewAdded(parent: View, child: View) = child.applySelectableEffect()
+        // 子视图移除回调
         override fun onChildViewRemoved(parent: View, child: View) {}
     })
 }

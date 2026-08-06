@@ -35,6 +35,7 @@ internal fun FileOpener.showOpenWithDialog(file: File, sharedView: View? = null)
         R.drawable.outline_android_24 to activity.getString(R.string.apk_viewer)
     )
     val adapter = object : ArrayAdapter<Pair<Int, String>>(activity, R.layout.item_open_with, options) {
+        // 获取视图
         override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
             val view = convertView ?: LayoutInflater.from(activity).inflate(R.layout.item_open_with, parent, false)
             val (iconRes, label) = options[position]

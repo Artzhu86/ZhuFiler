@@ -35,6 +35,7 @@ class AudioPlayerActivity : AppCompatActivity() {
     fun isPlayerInitialized() = ::player.isInitialized
 
     internal val updateRunnable = object : Runnable {
+        // 执行播放器更新
         override fun run() {
             if (::player.isInitialized) {
                 val pos = player.currentPosition

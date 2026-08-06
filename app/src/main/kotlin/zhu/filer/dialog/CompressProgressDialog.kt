@@ -4,6 +4,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.progressindicator.LinearProgressIndicator
@@ -21,7 +22,7 @@ fun createCompressProgressDialog(
     val progressBar = container.findViewById<LinearProgressIndicator>(R.id.compress_progress_bar)
 
     fileNameView.setTextIsSelectable(false)
-    fileNameView.setTextColor(MaterialColors.getColor(fileNameView, com.google.android.material.R.attr.colorOnSurfaceVariant, 0xFF888888.toInt()))
+    fileNameView.setTextColor(MaterialColors.getColor(fileNameView, com.google.android.material.R.attr.colorOnSurfaceVariant, ContextCompat.getColor(fileNameView.context, R.color.fallback_on_surface_variant)))
     progressBar.setProgressCompat(0, false)
 
     val dialog = MaterialAlertDialogBuilder(activity)

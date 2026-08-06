@@ -54,13 +54,16 @@ internal fun AudioPlayerActivity.setupToolbar() {
 // 设置控制器
 internal fun AudioPlayerActivity.setupControls() {
     binding.timeBar.addListener(object : TimeBar.OnScrubListener {
+        // 开始拖动进度条
         override fun onScrubStart(timeBar: TimeBar, position: Long) {
             scrubbing = true
             binding.timeCurrent.text = formatTime(position)
         }
+        // 拖动进度条移动
         override fun onScrubMove(timeBar: TimeBar, position: Long) {
             binding.timeCurrent.text = formatTime(position)
         }
+        // 停止拖动进度条
         override fun onScrubStop(timeBar: TimeBar, position: Long, canceled: Boolean) {
             scrubbing = false
             if (isPlayerInitialized()) {
@@ -104,9 +107,11 @@ internal fun AudioPlayerActivity.initializePlayer() {
     player.prepare()
     player.playWhenReady = true
     player.addListener(object : Player.Listener {
+        // 播放状态变更
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             updatePlayPauseButton(isPlaying)
         }
+        // 播放状态改变
         override fun onPlaybackStateChanged(state: Int) {
             if (state == Player.STATE_ENDED) {
                 player.playWhenReady = false

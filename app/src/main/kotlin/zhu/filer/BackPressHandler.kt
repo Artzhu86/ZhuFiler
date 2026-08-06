@@ -25,6 +25,7 @@ class BackPressHandler(private val activity: AppCompatActivity) {
         onExitMultiSelect: () -> Unit
     ) {
         activity.onBackPressedDispatcher.addCallback(activity, object : OnBackPressedCallback(true) {
+            // 处理返回按键
             override fun handleOnBackPressed() {
                 if (multiSelectController.isInMultiSelectMode()) {
                     onExitMultiSelect()

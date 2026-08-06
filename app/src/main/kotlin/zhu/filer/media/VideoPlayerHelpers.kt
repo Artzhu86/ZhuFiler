@@ -39,11 +39,13 @@ internal fun VideoPlayerActivity.initializePlayer() {
     binding.playerView.showController()
 
     player.addListener(object : Player.Listener {
+        // 播放状态变更
         override fun onPlaybackStateChanged(state: Int) {
             if (state == Player.STATE_ENDED) {
                 player.playWhenReady = false
             }
         }
+        // 播放就绪状态变更
         override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
             if (playWhenReady && player.playbackState == Player.STATE_ENDED) {
                 player.seekTo(0)

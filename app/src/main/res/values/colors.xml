@@ -245,4 +245,6 @@
     <color name="theme_cyan_surface_container">#EDF2F0</color>
     <color name="theme_cyan_surface_container_high">#E7ECEA</color>
     <color name="theme_cyan_surface_container_highest">#E1E6E4</color>
+
+    <color name="fallback_on_surface_variant">#FF888888</color>
 </resources>

@@ -40,14 +40,19 @@ internal fun ImageViewerActivity.setupTransition(params: com.skydoves.transforma
         scrimColor = bgColor
         fadeMode = MaterialContainerTransform.FADE_MODE_THROUGH
         addListener(object : android.transition.Transition.TransitionListener {
+            // 转场动画开始
             override fun onTransitionStart(transition: android.transition.Transition) {}
+            // 转场动画结束
             override fun onTransitionEnd(transition: android.transition.Transition) {
                 startGifIfNeeded()
             }
+            // 转场动画取消
             override fun onTransitionCancel(transition: android.transition.Transition) {
                 startGifIfNeeded()
             }
+            // 转场动画暂停
             override fun onTransitionPause(transition: android.transition.Transition) {}
+            // 转场动画恢复
             override fun onTransitionResume(transition: android.transition.Transition) {}
         })
     }
@@ -79,6 +84,7 @@ internal fun ImageViewerActivity.setupPager() {
     )
     binding.imagePager.setCurrentItem(currentIndex, false)
     binding.imagePager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+        // 页面选中变更
         override fun onPageSelected(position: Int) {
             currentIndex = position
             supportActionBar?.title = currentFile().name

@@ -111,9 +111,11 @@ class FileItemBinder(
             view.setBackgroundColor(it.animatedValue as Int)
         }
         anim.addListener(object : AnimatorListenerAdapter() {
+            // 动画结束回调
             override fun onAnimationEnd(animation: Animator) {
                 onEnd()
             }
+            // 动画取消回调
             override fun onAnimationCancel(animation: Animator) {
                 onEnd()
             }

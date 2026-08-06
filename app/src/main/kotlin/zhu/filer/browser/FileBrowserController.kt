@@ -101,6 +101,7 @@ class FileBrowserController(
         recyclerView.itemAnimator = null
         val spacing = dpToPx(activity, 80)
         recyclerView.addItemDecoration(object : RecyclerView.ItemDecoration() {
+            // 计算条目偏移
             override fun getItemOffsets(outRect: android.graphics.Rect, view: View, parent: RecyclerView, state: RecyclerView.State) {
                 val pos = parent.getChildAdapterPosition(view)
                 val total = parent.adapter?.itemCount ?: 0

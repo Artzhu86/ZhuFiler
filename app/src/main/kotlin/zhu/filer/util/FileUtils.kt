@@ -16,10 +16,8 @@ enum class SortMode(val labelRes: Int) {
     DATE(R.string.sort_by_date)
 }
 
-// 文件路径传递键
 const val EXTRA_FILE_PATH = "extra_file_path"
 
-// 转场动画参数键
 const val TRANSITION_PARAMS_KEY = "TransformationParams"
 
 // 获取排序比较器
@@ -32,10 +30,8 @@ fun getSortComparator(mode: SortMode): Comparator<File> {
     }
 }
 
-// 最近目录分隔符
 private const val RECENT_SEPARATOR = "|"
 
-// 最近目录最大数量
 private const val RECENT_MAX_COUNT = 10
 
 // 显示提示消息

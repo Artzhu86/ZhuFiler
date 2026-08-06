@@ -3,6 +3,7 @@ package zhu.filer.settings
 import android.view.LayoutInflater
 import android.widget.FrameLayout
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -35,7 +36,7 @@ internal fun SearchHelper.performSearch(query: String, recursive: Boolean = true
     val container = LayoutInflater.from(activity).inflate(R.layout.dialog_search_progress, null)
     val dirView = container.findViewById<TextView>(R.id.search_progress_dir)
     val progressBar = container.findViewById<LinearProgressIndicator>(R.id.search_progress_bar)
-    dirView.setTextColor(MaterialColors.getColor(dirView, materialR.attr.colorOnSurfaceVariant, 0xFF888888.toInt()))
+    dirView.setTextColor(MaterialColors.getColor(dirView, materialR.attr.colorOnSurfaceVariant, ContextCompat.getColor(dirView.context, R.color.fallback_on_surface_variant)))
     dirView.setTextIsSelectable(false)
     progressBar.show()
 

@@ -29,6 +29,7 @@ object ArchiveEngine {
 
     // 创建输出流
     internal fun createOutStream(out: FileOutputStream) = object : ISequentialOutStream {
+        // 写入数据
         override fun write(data: ByteArray?): Int {
             if (data != null && data.isNotEmpty()) out.write(data)
             return data?.size ?: 0

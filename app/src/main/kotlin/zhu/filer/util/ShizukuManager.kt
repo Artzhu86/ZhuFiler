@@ -51,9 +51,13 @@ object ShizukuManager {
 
     // 权限状态
     sealed class PermissionState {
+        // 未安装状态
         object NotInstalled : PermissionState()
+        // 未运行状态
         object NotRunning : PermissionState()
+        // 无权限状态
         object NoPermission : PermissionState()
+        // 已授权状态
         object Granted : PermissionState()
     }
 

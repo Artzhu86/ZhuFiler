@@ -4,10 +4,8 @@ import android.widget.TextView
 import androidx.appcompat.widget.Toolbar
 import zhu.filer.R
 
-// 椭圆化起始位置
 private const val ELLIPSIZE_START = 0
 
-// 椭圆化中间位置
 private const val ELLIPSIZE_MIDDLE = 1
 
 // 应用工具栏标题

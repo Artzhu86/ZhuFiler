@@ -43,7 +43,6 @@ class FastScroller @JvmOverloads constructor(
     internal val handler = Handler(Looper.getMainLooper())
     internal val autoHideRunnable = Runnable { hide() }
 
-    // 初始化
     init {
         thumbPaint.color = getThemeColor(context, android.R.attr.colorPrimary)
         trackPaint.color = getThemeColor(context, materialR.attr.colorSurfaceVariant)
@@ -55,6 +54,7 @@ class FastScroller @JvmOverloads constructor(
     fun attach(recyclerView: RecyclerView) {
         boundRecyclerView = recyclerView
         recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            // 列表滚动回调
             override fun onScrolled(rv: RecyclerView, dx: Int, dy: Int) {
                 updateThumb()
                 if (dx != 0 || dy != 0) {
@@ -64,8 +64,11 @@ class FastScroller @JvmOverloads constructor(
         })
         recyclerView.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> updateThumb() }
         recyclerView.adapter?.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
+            // 数据变更回调
             override fun onChanged() = updateThumb()
+            // 数据插入回调
             override fun onItemRangeInserted(positionStart: Int, itemCount: Int) = updateThumb()
+            // 数据移除回调
             override fun onItemRangeRemoved(positionStart: Int, itemCount: Int) = updateThumb()
         })
         updateThumb()

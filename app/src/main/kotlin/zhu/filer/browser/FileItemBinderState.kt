@@ -45,12 +45,14 @@ internal fun FileItemBinder.applyVisualState(holder: FileListAdapter.ViewHolder,
             .setDuration(FileItemBinder.FADE_DURATION)
             .setStartDelay(startDelay)
             .setListener(object : AnimatorListenerAdapter() {
+                // 动画结束回调
                 override fun onAnimationEnd(animation: Animator) {
                     holder.itemView.alpha = 1f
                     if (isHighlight) {
                         startBlinkOutAnimation(holder, position)
                     }
                 }
+                // 动画取消回调
                 override fun onAnimationCancel(animation: Animator) {
                     holder.itemView.alpha = 1f
                 }
@@ -73,6 +75,7 @@ private fun FileItemBinder.startBlinkOutAnimation(holder: FileListAdapter.ViewHo
         holder.container.setBackgroundColor(it.animatedValue as Int)
     }
     bgAnim.addListener(object : AnimatorListenerAdapter() {
+        // 动画结束回调
         override fun onAnimationEnd(animation: Animator) {
             holder.container.setBackgroundColor(Color.TRANSPARENT)
             clearBlinkIfMatches(position)

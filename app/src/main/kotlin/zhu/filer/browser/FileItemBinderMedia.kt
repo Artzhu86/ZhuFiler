@@ -22,6 +22,7 @@ internal fun FileItemBinder.createThumbnailListener(
     position: Int
 ): RequestListener<Drawable> {
     return object : RequestListener<Drawable> {
+        // 图片加载失败
         override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean): Boolean {
             val px = dpToPx(holder.iconIv.context, FileItemViewBuilder.ICON_SIZE_DP)
             holder.iconIv.layoutParams = FrameLayout.LayoutParams(px, px).apply {
@@ -33,6 +34,7 @@ internal fun FileItemBinder.createThumbnailListener(
             applyIconColor(holder, isSelected(position))
             return true
         }
+        // 图片加载就绪
         override fun onResourceReady(resource: Drawable, model: Any, target: Target<Drawable>, dataSource: DataSource, isFirstResource: Boolean): Boolean {
             holder.iconIv.layoutParams = FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
