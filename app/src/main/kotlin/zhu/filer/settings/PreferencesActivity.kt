@@ -62,22 +62,22 @@ class PreferencesActivity : AppCompatActivity() {
             PreferenceItem(
                 title = getString(R.string.language),
                 summaryProvider = { getCurrentLanguageSummary() },
-                onClick = { update -> showLanguageDialog(update) }
+                onClick = { itemView, update -> showLanguageDialog(itemView, update) }
             ),
             PreferenceItem(
                 title = getString(R.string.theme_color),
                 summaryProvider = { getCurrentThemeColorSummary() },
-                onClick = { update -> showThemeColorDialog(update) }
+                onClick = { itemView, update -> showThemeColorDialog(itemView, update) }
             ),
             PreferenceItem(
                 title = getString(R.string.night_mode),
                 summaryProvider = { getCurrentNightModeSummary() },
-                onClick = { update -> showNightModeDialog(update) }
+                onClick = { itemView, update -> showNightModeDialog(itemView, update) }
             ),
             PreferenceItem(
                 title = getString(R.string.shizuku),
                 summaryProvider = { getShizukuStatusSummary() },
-                onClick = { update -> showShizukuDialog(update) }
+                onClick = { itemView, update -> showShizukuDialog(itemView, update) }
             )
         )
     }
@@ -101,7 +101,7 @@ class PreferencesActivity : AppCompatActivity() {
 data class PreferenceItem(
     val title: String,
     val summaryProvider: (SharedPreferences) -> String,
-    val onClick: (() -> Unit) -> Unit
+    val onClick: (View, () -> Unit) -> Unit
 )
 
 // 设置项适配器
@@ -128,7 +128,7 @@ class PreferencesAdapter(
         holder.titleTv.text = item.title
         holder.summaryTv.text = item.summaryProvider(prefs)
         holder.itemView.setOnClickListener {
-            item.onClick { notifyItemChanged(position) }
+            item.onClick(holder.itemView) { notifyItemChanged(position) }
         }
     }
 

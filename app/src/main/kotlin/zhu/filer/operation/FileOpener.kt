@@ -34,13 +34,13 @@ class FileOpener(
 ) {
 
     // 打开文件
-    fun openFile(file: File, sharedView: View? = null, forceChoose: Boolean = false) {
+    fun openFile(file: File, sharedView: View? = null, forceChoose: Boolean = false, itemView: View? = null) {
         if (!file.canRead()) {
             toast(activity, activity.getString(R.string.cannot_read))
             return
         }
         if (forceChoose) {
-            showOpenWithDialog(file, sharedView)
+            showOpenWithDialog(itemView!!, file, sharedView)
         } else {
             openByType(file, sharedView)
         }
@@ -53,24 +53,24 @@ class FileOpener(
     fun getArchivePassword(): String? = browserController.getArchivePassword()
 
     // 打开归档条目
-    fun openArchiveEntry(item: FileItem, sharedView: View? = null, forceChoose: Boolean = false) {
+    fun openArchiveEntry(item: FileItem, sharedView: View? = null, forceChoose: Boolean = false, itemView: View? = null) {
         if (item.encrypted) {
             val cached = browserController.getArchivePassword()
             if (cached != null) {
-                extractAndOpen(item, cached, sharedView, forceChoose)
+                extractAndOpen(item, cached, sharedView, forceChoose, itemView)
             } else {
                 showArchivePasswordDialog(activity) { password ->
                     browserController.cacheArchivePassword(password)
-                    extractAndOpen(item, password, sharedView, forceChoose)
+                    extractAndOpen(item, password, sharedView, forceChoose, itemView)
                 }
             }
         } else {
-            extractAndOpen(item, null, sharedView, forceChoose)
+            extractAndOpen(item, null, sharedView, forceChoose, itemView)
         }
     }
 
     // 解压并打开
-    private fun extractAndOpen(item: FileItem, password: String?, sharedView: View?, forceChoose: Boolean) {
+    private fun extractAndOpen(item: FileItem, password: String?, sharedView: View?, forceChoose: Boolean, itemView: View? = null) {
         val archiveFile = browserController.getArchiveFile() ?: return
         lifecycleScope.launch {
             progressBar.show()
@@ -82,7 +82,7 @@ class FileOpener(
                     ArchiveEngine.extractEntry(archiveFile, item.entryPath!!, password, tempFile)
                 }
                 if (success && tempFile.exists()) {
-                    openFile(tempFile, sharedView, forceChoose)
+                    openFile(tempFile, sharedView, forceChoose, itemView)
                 } else {
                     toast(activity, activity.getString(R.string.extract_failed))
                 }

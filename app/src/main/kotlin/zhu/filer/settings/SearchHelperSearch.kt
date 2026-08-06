@@ -111,7 +111,7 @@ internal fun SearchHelper.showSearchResult(items: List<FileItem>) {
             if (file.isDirectory) activity.lifecycleScope.launch { loadDir(file) }
             else locateFile(file)
         },
-        onItemLongClick = { _, _ -> false }
+        onItemLongClick = { _, _, _ -> false }
     )
     rv.adapter = adapter
 

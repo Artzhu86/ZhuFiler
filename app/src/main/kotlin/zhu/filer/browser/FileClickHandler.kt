@@ -40,7 +40,7 @@ class FileClickHandler(
     fun setup() {
         adapter = FileListAdapter(
             onItemClick = { _, pos, sharedView -> handleItemClick(pos, sharedView) },
-            onItemLongClick = { _, pos -> handleItemLongClick(pos) }
+            onItemLongClick = { _, pos, view -> handleItemLongClick(pos, view) }
         )
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(activity)

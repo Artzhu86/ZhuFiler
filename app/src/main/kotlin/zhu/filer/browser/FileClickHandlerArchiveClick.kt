@@ -1,5 +1,6 @@
 package zhu.filer.browser
 
+import android.view.View
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -17,9 +18,9 @@ import zhu.filer.ui.updatePasteButtons
 import zhu.filer.util.toast
 
 // 处理归档项长按
-internal fun FileClickHandler.handleArchiveLongClick(item: FileItem) {
+internal fun FileClickHandler.handleArchiveLongClick(item: FileItem, itemView: View) {
     showArchiveItemOpsDialog(
-        activity, item, fileOpener,
+        activity, itemView, item, fileOpener,
         onCopyCut = { archiveItem, isCut ->
             activity.lifecycleScope.launch {
                 val tempFile = withContext(Dispatchers.IO) {

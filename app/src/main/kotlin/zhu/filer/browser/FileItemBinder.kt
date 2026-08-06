@@ -25,7 +25,7 @@ class FileItemBinder(
     internal val firstVisiblePosition: () -> Int,
     internal val notifyItemChanged: (Int) -> Unit,
     internal val onItemClick: (File, Int, View) -> Unit,
-    internal val onItemLongClick: (File, Int) -> Boolean
+    internal val onItemLongClick: (File, Int, View) -> Boolean
 ) {
 
     // 伴生对象
@@ -97,7 +97,7 @@ class FileItemBinder(
                 else -> Color.TRANSPARENT
             }
             holder.container.setBackgroundColor(bg)
-            onItemLongClick(item.file, position)
+            onItemLongClick(item.file, position, holder.itemView)
         }
     }
 

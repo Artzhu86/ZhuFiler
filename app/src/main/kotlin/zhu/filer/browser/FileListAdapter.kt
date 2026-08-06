@@ -19,7 +19,7 @@ import zhu.filer.ui.getThemeColor
 // 文件列表适配器
 class FileListAdapter(
     private val onItemClick: (File, Int, View) -> Unit,
-    private val onItemLongClick: (File, Int) -> Boolean
+    private val onItemLongClick: (File, Int, View) -> Boolean
 ) : RecyclerView.Adapter<FileListAdapter.ViewHolder>() {
 
     internal val items = mutableListOf<FileItem>()

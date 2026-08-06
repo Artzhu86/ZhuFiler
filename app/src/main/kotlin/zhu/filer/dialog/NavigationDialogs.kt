@@ -63,7 +63,7 @@ fun showNavigateDialog(activity: AppCompatActivity, currentPath: String, loadDir
                             activity.lifecycleScope.launch { loadDir(file) }
                         }, activity.resources.getInteger(R.integer.click_delay_ms).toLong())
                     },
-                    onItemLongClick = { _, _ -> false }
+                    onItemLongClick = { _, _, _ -> false }
                 ).apply { submitList(items) }
             }
 

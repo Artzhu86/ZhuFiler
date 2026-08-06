@@ -1,17 +1,19 @@
 package zhu.filer.dialog
 
 import android.text.format.Formatter
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.PopupMenu
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import zhu.filer.FileItem
 import zhu.filer.R
 import zhu.filer.ui.buildDialogTitle
 import zhu.filer.operation.FileOpener
-import zhu.filer.ui.showListDialog
 
 // 显示归档条目操作
 fun showArchiveItemOpsDialog(
     activity: AppCompatActivity,
+    itemView: View,
     item: FileItem,
     fileOpener: FileOpener,
     onCopyCut: (FileItem, Boolean) -> Unit = { _, _ -> },
@@ -32,30 +34,30 @@ fun showArchiveItemOpsDialog(
     items.add(activity.getString(R.string.compress))
     items.add(activity.getString(R.string.properties))
 
-    val dialog = MaterialAlertDialogBuilder(activity)
-        .setCustomTitle(buildDialogTitle(activity, item.displayName))
-        .setItems(items.toTypedArray()) { _, which ->
-            val action = items[which]
-            when (action) {
-                activity.getString(R.string.copy) -> onCopyCut(item, false)
-                activity.getString(R.string.move) -> onCopyCut(item, true)
-                activity.getString(R.string.rename) -> showArchiveRenameDialog(activity, item, onRename)
-                activity.getString(R.string.delete) -> {
-                    MaterialAlertDialogBuilder(activity).setCustomTitle(buildDialogTitle(activity, R.string.delete))
-                        .setMessage(activity.getString(R.string.delete_message, item.displayName))
-                        .setPositiveButton(R.string.delete) { _, _ -> onDelete(item) }
-                        .setNegativeButton(R.string.cancel, null).show()
-                }
-                activity.getString(R.string.open_with) -> fileOpener.openArchiveEntry(item, forceChoose = true)
-                activity.getString(R.string.share) -> shareArchiveEntry(activity, item, fileOpener)
-                activity.getString(R.string.compress) -> onCompress(item)
-                activity.getString(R.string.properties) -> showArchiveEntryDetailsDialog(activity, item)
+    val popup = PopupMenu(activity, itemView)
+    items.forEachIndexed { index, label ->
+        popup.menu.add(0, index, index, label)
+    }
+    popup.setOnMenuItemClickListener { menuItem ->
+        val action = items[menuItem.itemId]
+        when (action) {
+            activity.getString(R.string.copy) -> onCopyCut(item, false)
+            activity.getString(R.string.move) -> onCopyCut(item, true)
+            activity.getString(R.string.rename) -> showArchiveRenameDialog(activity, item, onRename)
+            activity.getString(R.string.delete) -> {
+                MaterialAlertDialogBuilder(activity).setCustomTitle(buildDialogTitle(activity, R.string.delete))
+                    .setMessage(activity.getString(R.string.delete_message, item.displayName))
+                    .setPositiveButton(R.string.delete) { _, _ -> onDelete(item) }
+                    .setNegativeButton(R.string.cancel, null).show()
             }
+            activity.getString(R.string.open_with) -> fileOpener.openArchiveEntry(item, forceChoose = true, itemView = itemView)
+            activity.getString(R.string.share) -> shareArchiveEntry(activity, item, fileOpener)
+            activity.getString(R.string.compress) -> onCompress(item)
+            activity.getString(R.string.properties) -> showArchiveEntryDetailsDialog(activity, item)
         }
-        .setNegativeButton(R.string.cancel, null)
-        .create()
-    showListDialog(dialog)
-    dialog.listView?.let { applySelectableEffectToListView(it) }
+        true
+    }
+    popup.show()
 }
 
 // 显示归档条目详情对话框

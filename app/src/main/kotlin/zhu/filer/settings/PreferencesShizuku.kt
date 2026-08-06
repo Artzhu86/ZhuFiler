@@ -1,5 +1,6 @@
 package zhu.filer.settings
 
+import android.view.View
 import zhu.filer.R
 import zhu.filer.util.ShizukuManager
 import zhu.filer.util.toast
@@ -18,7 +19,7 @@ internal fun PreferencesActivity.getShizukuStatusSummary(): String {
 }
 
 // 显示Shizuku对话框
-internal fun PreferencesActivity.showShizukuDialog(update: () -> Unit) {
+internal fun PreferencesActivity.showShizukuDialog(itemView: View, update: () -> Unit) {
     val state = ShizukuManager.getPermissionState()
     when (state) {
         ShizukuManager.PermissionState.NotInstalled -> {

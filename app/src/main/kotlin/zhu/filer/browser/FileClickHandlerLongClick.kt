@@ -1,27 +1,29 @@
 package zhu.filer.browser
 
+import android.view.View
 import zhu.filer.dialog.showCompressDialog
 import zhu.filer.dialog.showFileOpsDialog
 import zhu.filer.operation.performCompress
 import zhu.filer.ui.updatePasteButtons
 
 // 处理项长按
-internal fun FileClickHandler.handleItemLongClick(pos: Int): Boolean {
+internal fun FileClickHandler.handleItemLongClick(pos: Int, itemView: View): Boolean {
     lastSwipeSelectPos = null
     val ms = multiSelectProvider()
     if (ms.isInMultiSelectMode()) {
         if (pos == 0 && browserController.canNavigateUp()) return true
-        ms.showBatchOperationMenu()
+        ms.showBatchOperationMenu(itemView)
         return true
     }
     if (pos == 0 && browserController.canNavigateUp()) return true
     val item = adapter.getFileItem(pos) ?: return true
     if (browserController.isInArchive()) {
-        handleArchiveLongClick(item)
+        handleArchiveLongClick(item, itemView)
         return true
     }
     showFileOpsDialog(
         activity = activity,
+        itemView = itemView,
         currentDir = browserController.currentDir,
         loadDir = { loadDir(it, false) },
         file = item.file,

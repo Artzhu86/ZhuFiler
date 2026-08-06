@@ -1,7 +1,8 @@
 package zhu.filer.operation
 
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import androidx.appcompat.widget.PopupMenu
 import com.google.android.material.progressindicator.CircularProgressIndicator
 import java.io.File
 import zhu.filer.browser.FileListAdapter
@@ -12,8 +13,6 @@ import zhu.filer.browser.hasSelection
 import zhu.filer.browser.selectPosition
 import zhu.filer.browser.toggleSelection
 import zhu.filer.R
-import zhu.filer.ui.buildDialogTitle
-import zhu.filer.ui.showListDialog
 import zhu.filer.util.toast
 
 // 多选控制器
@@ -76,7 +75,7 @@ class MultiSelectController(
     }
 
     // 显示批量操作菜单
-    fun showBatchOperationMenu() {
+    fun showBatchOperationMenu(itemView: View) {
         val inArchive = isInArchive()
         val selectedItems = adapter.getSelectedFileItems()
         if (selectedItems.isEmpty()) {
@@ -90,33 +89,35 @@ class MultiSelectController(
             activity.getString(R.string.share),
             activity.getString(R.string.compress)
         )
-        val dialog = MaterialAlertDialogBuilder(activity)
-            .setCustomTitle(buildDialogTitle(activity, activity.getString(R.string.batch_operation, selectedItems.size)))
-            .setItems(items.toTypedArray()) { _, which ->
-                if (inArchive) {
-                    when (which) {
-                        0 -> batchArchiveDelete(selectedItems)
-                        1 -> batchArchiveCopyOrMove(selectedItems, isMove = false)
-                        2 -> batchArchiveCopyOrMove(selectedItems, isMove = true)
-                        3 -> batchArchiveShare(selectedItems)
-                        4 -> batchArchiveCompress(selectedItems)
-                    }
-                } else {
-                    val selected = adapter.getSelectedFiles()
-                    when (which) {
-                        0 -> batchDelete(selected)
-                        1 -> batchCopyOrMove(selected, isMove = false)
-                        2 -> batchCopyOrMove(selected, isMove = true)
-                        3 -> batchShare(selected)
-                        4 -> {
-                            onCompress?.invoke(selected)
-                            exitMultiSelect()
-                        }
+        val popup = PopupMenu(activity, itemView)
+        items.forEachIndexed { index, label ->
+            popup.menu.add(0, index, index, label)
+        }
+        popup.setOnMenuItemClickListener { menuItem ->
+            val which = menuItem.itemId
+            if (inArchive) {
+                when (which) {
+                    0 -> batchArchiveDelete(selectedItems)
+                    1 -> batchArchiveCopyOrMove(selectedItems, isMove = false)
+                    2 -> batchArchiveCopyOrMove(selectedItems, isMove = true)
+                    3 -> batchArchiveShare(selectedItems)
+                    4 -> batchArchiveCompress(selectedItems)
+                }
+            } else {
+                val selected = adapter.getSelectedFiles()
+                when (which) {
+                    0 -> batchDelete(selected)
+                    1 -> batchCopyOrMove(selected, isMove = false)
+                    2 -> batchCopyOrMove(selected, isMove = true)
+                    3 -> batchShare(selected)
+                    4 -> {
+                        onCompress?.invoke(selected)
+                        exitMultiSelect()
                     }
                 }
             }
-            .setNegativeButton(R.string.cancel, null)
-            .create()
-        showListDialog(dialog)
+            true
+        }
+        popup.show()
     }
 }
