@@ -30,11 +30,13 @@ class BookmarkManager(
         internal const val FIXED_ITEM_ROOT = 1
         internal const val FIXED_ITEM_STORAGE = 2
         internal const val FIXED_ITEM_PREFERENCES = 3
+        internal const val FIXED_ITEM_ABOUT = 4
         internal const val BOOKMARK_START_ID = 100
         internal const val ORDER_ROOT = 0
         internal const val ORDER_STORAGE = 1
         internal const val ORDER_BOOKMARK_BASE = 2
         internal const val ORDER_PREFERENCES = 100
+        internal const val ORDER_ABOUT = 101
     }
 
     // 获取书签列表

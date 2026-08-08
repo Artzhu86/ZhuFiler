@@ -3,12 +3,18 @@ package zhu.filer
 import android.os.Bundle
 import java.io.File
 import zhu.filer.browser.saveScrollState
+import zhu.filer.util.ShizukuManager
 import zhu.filer.util.toast
 
 // 初始加载
 internal fun MainActivity.initLoad() {
     permissionHelper.requestStoragePermission(
-        onGranted = { loadDir(browserController.currentDir, scrollToTop = true) },
+        onGranted = {
+            loadDir(browserController.currentDir, scrollToTop = true)
+            if (ShizukuManager.getPermissionState() == ShizukuManager.PermissionState.NoPermission) {
+                ShizukuManager.requestPermission(0)
+            }
+        },
         onDenied = { toast(this, getString(R.string.need_storage_permission)); finish() }
     )
 }

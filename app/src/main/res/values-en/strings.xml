@@ -139,4 +139,5 @@
     <string name="shizuku_no_permission">No permission</string>
     <string name="shizuku_granted_root">Granted (ROOT)</string>
     <string name="shizuku_granted_adb">Granted (ADB)</string>
+    <string name="about">About</string>
 </resources>

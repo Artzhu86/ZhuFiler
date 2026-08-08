@@ -5,6 +5,7 @@ import androidx.core.view.GravityCompat
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import java.io.File
+import zhu.filer.AboutActivity
 import zhu.filer.R
 import zhu.filer.util.toast
 
@@ -37,6 +38,9 @@ internal fun BookmarkManager.buildMenu(currentDir: File? = null) {
 
     menu.add(BookmarkManager.GROUP_SETTINGS, BookmarkManager.FIXED_ITEM_PREFERENCES, BookmarkManager.ORDER_PREFERENCES, activity.getString(R.string.preferences))
         .setIcon(R.drawable.outline_settings_24)
+
+    menu.add(BookmarkManager.GROUP_SETTINGS, BookmarkManager.FIXED_ITEM_ABOUT, BookmarkManager.ORDER_ABOUT, activity.getString(R.string.about))
+        .setIcon(R.drawable.outline_info_24)
 
     navigationView.post { attachLongPress(bookmarks) }
 }
@@ -71,6 +75,10 @@ internal fun BookmarkManager.setupNavigation() {
             BookmarkManager.FIXED_ITEM_STORAGE -> activity.lifecycleScope.launch { loadDir(Environment.getExternalStorageDirectory()) }
             BookmarkManager.FIXED_ITEM_PREFERENCES -> {
                 val intent = android.content.Intent(activity, PreferencesActivity::class.java)
+                activity.startActivity(intent)
+            }
+            BookmarkManager.FIXED_ITEM_ABOUT -> {
+                val intent = android.content.Intent(activity, AboutActivity::class.java)
                 activity.startActivity(intent)
             }
 
