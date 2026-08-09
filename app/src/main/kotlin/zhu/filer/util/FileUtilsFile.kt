@@ -22,7 +22,7 @@ fun createFileItem(context: Context, file: File): FileItem {
 // 判断文件名是否合法
 fun isValid(name: String) = name.isNotBlank() && name.matches(Regex("^[^\\\\/:*?\"<>|]+\$"))
 
-// 获取目录统计信息
+// 获取目录统计信息（用于文件属性对话框，单次Shizuku调用）
 fun getDirStats(dir: File): Pair<Int, Int> {
     if (ShizukuManager.hasPermission()) {
         val infos = ShizukuManager.listFilesWithDetails(dir.absolutePath)

@@ -13,7 +13,6 @@ import zhu.filer.util.ShizukuManager
 import zhu.filer.util.SortMode
 import zhu.filer.util.createFileItem
 import zhu.filer.util.formatDate
-import zhu.filer.util.getDirStats
 import zhu.filer.util.getSortComparator
 import zhu.filer.util.listFilesWithDetails
 
@@ -46,8 +45,8 @@ class FileListLoader(private val context: Context) {
     // 通过Shizuku加载目录
     private fun loadViaShizuku(dir: File, showHidden: Boolean, sortMode: SortMode): List<FileItem>? {
         val infos = ShizukuManager.listFilesWithDetails(dir.absolutePath) ?: return null
-        val filtered = if (showHidden) infos else infos.filter { !it.name.startsWith(".") }
 
+        val filtered = if (showHidden) infos else infos.filter { !it.name.startsWith(".") }
         val sorted = filtered.sortedWith(compareByDescending<ShizukuManager.ShizukuFileInfo> { it.isDirectory }
             .let { comp ->
                 when (sortMode) {
@@ -56,16 +55,19 @@ class FileListLoader(private val context: Context) {
                     SortMode.DATE -> comp.thenByDescending { it.lastModified }
                 }
             })
-
         return sorted.map { info ->
             val file = File(dir, info.name)
             val timeStr = formatDate(context, info.lastModified)
             val sizeStr = Formatter.formatFileSize(context, info.size)
             val iconRes = if (info.isDirectory) R.drawable.outline_folder_24 else FileType.getIconRes(info.name, false)
-            FileItem(file, info.name, iconRes, "$timeStr  $sizeStr")
+            FileItem(file, info.name, iconRes, "$timeStr  $sizeStr", isDirectory = info.isDirectory, size = info.size)
         }
     }
 
-    // 获取目录统计信息
-    fun getStats(dir: File): Pair<Int, Int> = getDirStats(dir)
+    // 从已加载的文件列表计算目录统计信息（无需额外Shizuku调用）
+    fun getStats(items: List<FileItem>): Pair<Int, Int> {
+        val actualItems = items.filter { it.displayName != ".." }
+        val dirs = actualItems.count { it.isDirectory }
+        return dirs to (actualItems.size - dirs)
+    }
 }

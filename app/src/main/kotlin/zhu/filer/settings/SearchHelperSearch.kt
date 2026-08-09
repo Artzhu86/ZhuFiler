@@ -65,24 +65,30 @@ internal fun SearchHelper.performSearch(query: String, recursive: Boolean = true
                     }
                 }
 
-                val files = if (ShizukuManager.hasPermission()) {
+                val shizukuInfos = if (ShizukuManager.hasPermission()) {
                     ShizukuManager.listFilesWithDetails(dir.absolutePath)
-                        ?.map { File(dir, it.name) }
-                } else {
-                    dir.listFiles()?.toList()
-                }
+                } else null
 
-                if (files == null) continue
-
-                for (file in files) {
-                    if (!isActive) break
-
-                    if (query.isEmpty() || file.name.contains(query, ignoreCase = true)) {
-                        val item = createFileItem(activity, file)
-                        resultItems.add(item)
+                if (shizukuInfos != null) {
+                    for (info in shizukuInfos) {
+                        if (!isActive) break
+                        val file = File(dir, info.name)
+                        if (query.isEmpty() || info.name.contains(query, ignoreCase = true)) {
+                            val item = createFileItem(activity, file)
+                            resultItems.add(item)
+                        }
+                        if (info.isDirectory && recursive) queue.add(file)
                     }
-
-                    if (file.isDirectory && recursive) queue.add(file)
+                } else {
+                    val files = dir.listFiles()?.toList() ?: continue
+                    for (file in files) {
+                        if (!isActive) break
+                        if (query.isEmpty() || file.name.contains(query, ignoreCase = true)) {
+                            val item = createFileItem(activity, file)
+                            resultItems.add(item)
+                        }
+                        if (file.isDirectory && recursive) queue.add(file)
+                    }
                 }
             }
         } finally {

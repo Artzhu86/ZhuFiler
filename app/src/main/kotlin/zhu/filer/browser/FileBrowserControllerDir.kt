@@ -33,7 +33,7 @@ fun FileBrowserController.loadDir(dir: File, showLoading: Boolean = true, scroll
             applyToolbarTitlePath(toolbar, currentDisplayPath())
             val items = fileLoader.loadItems(dir, showHiddenProvider(), sortModeProvider())
             if (currentCoroutineContext().isActive) {
-                val (dirs, files) = fileLoader.getStats(dir)
+                val (dirs, files) = fileLoader.getStats(items)
                 activity.supportActionBar?.subtitle = "${activity.getString(R.string.dir_count_label)}: $dirs  ${activity.getString(R.string.file_count_label)}: $files"
                 updateRecentDirs(prefs, dir.absolutePath)
                 val (lastMod, childCount) = withContext(Dispatchers.IO) {
