@@ -72,3 +72,8 @@ mdui-layout-main{padding-top:0!important}
   .feature-card{padding:24px}
   .hero-actions{justify-content:center}
 }
+/* Disable double-tap zoom and touch callout */
+html, body {
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+}
