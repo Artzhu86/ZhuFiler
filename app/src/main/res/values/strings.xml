@@ -58,8 +58,6 @@
     <string name="sort_by_name">按名称</string>
     <string name="sort_by_size">按大小</string>
     <string name="sort_by_date">按日期</string>
-    <string name="add_current_bookmark">添加书签</string>
-    <string name="remove_current_bookmark">移除书签</string>
     <string name="selected_count">已选中 %1$d 项</string>
     <string name="paste_failed">部分操作失败</string>
     <string name="need_storage_permission">需要存储权限</string>
@@ -142,4 +140,8 @@
     <string name="shizuku_granted_root">已授权 (ROOT)</string>
     <string name="shizuku_granted_adb">已授权 (ADB)</string>
     <string name="about">关于</string>
+    <string name="official_website">官方网站</string>
+    <string name="view_github">查看Github仓库</string>
+    <string name="join_qq_group">加入QQ群组</string>
+    <string name="official_bilibili">官方哔哩哔哩</string>
 </resources>

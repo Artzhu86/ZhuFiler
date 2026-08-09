@@ -95,7 +95,7 @@ class MenuController(
     // 获取书签菜单标题
     private fun getBookmarkMenuTitle(): String {
         val isBookmarked = bookmarkManager.isBookmarked(browserController.currentDir.absolutePath)
-        return activity.getString(if (isBookmarked) R.string.remove_current_bookmark else R.string.add_current_bookmark)
+        return activity.getString(if (isBookmarked) R.string.remove_bookmark else R.string.add_bookmark)
     }
 
     // 显示排序对话框

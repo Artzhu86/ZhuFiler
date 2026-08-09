@@ -58,8 +58,6 @@
     <string name="sort_by_name">Name</string>
     <string name="sort_by_size">Size</string>
     <string name="sort_by_date">Date modified</string>
-    <string name="add_current_bookmark">Add bookmark</string>
-    <string name="remove_current_bookmark">Remove bookmark</string>
     <string name="selected_count">Selected: %1$d</string>
     <string name="paste_failed">Some operations failed</string>
     <string name="need_storage_permission">Storage permission required</string>
@@ -140,4 +138,8 @@
     <string name="shizuku_granted_root">Granted (ROOT)</string>
     <string name="shizuku_granted_adb">Granted (ADB)</string>
     <string name="about">About</string>
+    <string name="official_website">Official Website</string>
+    <string name="view_github">View GitHub Repository</string>
+    <string name="join_qq_group">Join QQ Group</string>
+    <string name="official_bilibili">Official Bilibili</string>
 </resources>
