@@ -23,6 +23,7 @@ class FileItemBinder(
     internal val defaultTextColor: () -> Int,
     internal val shouldAnimateItem: (String) -> Boolean,
     internal val firstVisiblePosition: () -> Int,
+    internal val isScrolling: () -> Boolean,
     internal val notifyItemChanged: (Int) -> Unit,
     internal val onItemClick: (File, Int, View) -> Unit,
     internal val onItemLongClick: (File, Int, View) -> Boolean

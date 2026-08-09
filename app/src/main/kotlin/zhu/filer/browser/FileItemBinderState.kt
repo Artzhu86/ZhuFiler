@@ -34,10 +34,10 @@ internal fun FileItemBinder.applyVisualState(holder: FileListAdapter.ViewHolder,
         }
     }
     val key = item.file.absolutePath
-    val shouldAnimate = shouldAnimateItem(key)
+    val shouldAnimate = shouldAnimateItem(key) && !isScrolling()
     if (shouldAnimate) {
         val relativePos = (position - firstVisiblePosition()).coerceAtLeast(0)
-        val startDelay = (relativePos * FileItemBinder.ITEM_ANIMATION_DELAY_MS).toLong()
+        val startDelay = (minOf(relativePos, 10) * FileItemBinder.ITEM_ANIMATION_DELAY_MS).toLong()
         holder.itemView.animate().cancel()
         holder.itemView.alpha = 0f
         holder.itemView.animate()

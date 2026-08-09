@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.android.material.card.MaterialCardView
@@ -28,6 +29,7 @@ class FileListAdapter(
     internal var dataVersion = 0
     internal val itemVersionMap = mutableMapOf<String, Int>()
     internal var firstVisiblePosition = 0
+    internal var isScrolling = false
 
     internal val selectedPositions = mutableSetOf<Int>()
     internal var selectedColor: Int = 0
@@ -63,6 +65,7 @@ class FileListAdapter(
             should
         },
         firstVisiblePosition = { firstVisiblePosition },
+        isScrolling = { isScrolling },
         notifyItemChanged = { notifyItemChanged(it) },
         onItemClick = onItemClick,
         onItemLongClick = onItemLongClick
@@ -111,6 +114,25 @@ class FileListAdapter(
 
     // 获取项数
     override fun getItemCount(): Int = items.size
+
+    // 附加到 RecyclerView 时注册滚动监听
+    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
+        super.onAttachedToRecyclerView(recyclerView)
+        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                super.onScrollStateChanged(recyclerView, newState)
+                isScrolling = newState == RecyclerView.SCROLL_STATE_DRAGGING ||
+                    newState == RecyclerView.SCROLL_STATE_SETTLING
+            }
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                val lm = recyclerView.layoutManager as? LinearLayoutManager
+                if (lm != null) {
+                    firstVisiblePosition = lm.findFirstVisibleItemPosition()
+                }
+            }
+        })
+    }
 
     // 视图持有者
     class ViewHolder(
