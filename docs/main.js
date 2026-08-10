@@ -44,6 +44,16 @@ document.getElementById('main-content').innerHTML = `
     </div>
   </section>
 
+  <section class="section" id="previews">
+    <div class="container">
+      <div class="preview-scroll">
+        <img src="preview1.jpg" alt="文件列表" class="preview-img animate-in delay-1" loading="lazy">
+        <img src="preview2.jpg" alt="侧边栏导航" class="preview-img animate-in delay-2" loading="lazy">
+        <img src="preview3.jpg" alt="偏好设置" class="preview-img animate-in delay-3" loading="lazy">
+      </div>
+    </div>
+  </section>
+
   <section class="section" id="features">
     <div class="container">
       <div class="grid grid-auto">
@@ -76,7 +86,7 @@ const html = document.documentElement
 const themeToggle = document.getElementById('theme-toggle')
 const prefersDark = window.matchMedia('(prefers-color-scheme: dark)')
 
-function applyTheme(dark) {
+function applyTheme(/** @type {boolean} */ dark) {
   if (dark) html.classList.add('mdui-theme-dark')
   else html.classList.remove('mdui-theme-dark')
   themeToggle?.setAttribute('icon', dark ? 'light_mode' : 'dark_mode')
@@ -133,9 +143,12 @@ document.getElementById('download-btn').addEventListener('click', async () => {
   try {
     const res = await fetch('https://api.github.com/repos/Artzhu86/ZhuFiler/releases/latest')
     const data = await res.json()
-    const apk = data.assets.find(a => a.name.endsWith('.apk'))
-    if (apk) window.location.href = apk.browser_download_url
-    else window.open('https://github.com/Artzhu86/ZhuFiler/releases/latest', '_blank')
+    const apk = data.assets.find((/** @type {{name: string}} */ a) => a.name.endsWith('.apk'))
+    if (apk) {
+      window.location.href = 'https://ghproxy.net/' + apk.browser_download_url
+    } else {
+      window.open('https://github.com/Artzhu86/ZhuFiler/releases/latest', '_blank')
+    }
   } catch {
     window.open('https://github.com/Artzhu86/ZhuFiler/releases/latest', '_blank')
   }

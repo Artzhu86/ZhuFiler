@@ -16,9 +16,11 @@ Open-source free, Beautiful powerful
 
 ## Preview
 
-<p><img src="preview/preview1.jpg" width="32%" /> <img src="preview/preview2.jpg" width="32%" /> <img src="preview/preview3.jpg" width="32%" />
-<img src="preview/preview4.jpg" width="32%" /> <img src="preview/preview5.jpg" width="32%" /> <img src="preview/preview6.jpg" width="32%" />
-<img src="preview/preview7.jpg" width="32%" /> <img src="preview/preview8.jpg" width="32%" /> <img src="preview/preview9.jpg" width="32%" /></p>
+<p>
+  <img src="docs/preview1.jpg" width="33%" />
+  <img src="docs/preview2.jpg" width="33%" />
+  <img src="docs/preview3.jpg" width="33%" />
+</p>
 
 ## Features
 
