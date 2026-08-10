@@ -145,7 +145,20 @@ document.getElementById('download-btn').addEventListener('click', async () => {
     const data = await res.json()
     const apk = data.assets.find((/** @type {{name: string}} */ a) => a.name.endsWith('.apk'))
     if (apk) {
-      window.location.href = 'https://ghproxy.net/' + apk.browser_download_url
+      const url = apk.browser_download_url
+      const proxies = ['https://gh.zwy.one/', 'https://ghproxy.net/']
+      for (const proxy of proxies) {
+        try {
+          const ctrl = new AbortController()
+          setTimeout(() => ctrl.abort(), 3000)
+          await fetch(proxy + url, { method: 'HEAD', signal: ctrl.signal })
+          window.location.href = proxy + url
+          return
+        } catch {
+          continue
+        }
+      }
+      window.location.href = url
     } else {
       window.open('https://github.com/Artzhu86/ZhuFiler/releases/latest', '_blank')
     }
