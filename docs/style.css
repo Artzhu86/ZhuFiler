@@ -80,3 +80,7 @@ html,body{touch-action:manipulation;-webkit-touch-callout:none}
 .preview-img{flex:0 0 auto;width:auto;max-width:260px;max-height:520px;border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.12);display:block}
 .preview-img:hover{transform:translateY(-4px)}
 @media (max-width:768px){.preview-img{max-width:240px;max-height:480px}}
+
+#previews, #features {
+  scroll-margin-top: 80px;
+}
