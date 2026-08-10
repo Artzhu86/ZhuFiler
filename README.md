@@ -17,9 +17,9 @@
 ## 预览
 
 <p>
-  <img src="docs/preview1.jpg" width="33%" />
-  <img src="docs/preview2.jpg" width="33%" />
-  <img src="docs/preview3.jpg" width="33%" />
+  <img src="docs/preview1.jpg" width="32%" />
+  <img src="docs/preview2.jpg" width="32%" />
+  <img src="docs/preview3.jpg" width="32%" />
 </p>
 
 ## 特性
