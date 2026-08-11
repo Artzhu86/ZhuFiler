@@ -1,98 +1,106 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>烛文件</title>
-  <meta name="description" content="Kotlin 编写的开源 Android 文件管理器">
-  <link rel="icon" type="image/png" href="icon.png">
-  <link rel="apple-touch-icon" href="icon.png">
-  <link rel="canonical" href="https://zhufiler.netlify.app/">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mdui@2/mdui.min.css">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap">
-  <link rel="stylesheet" href="style.css">
-  <script src="https://cdn.jsdelivr.net/npm/mdui@2/mdui.global.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>烛文件</title>
+    <meta name="description" content="Kotlin 编写的开源 Android 文件管理器">
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="apple-touch-icon" href="icon.png">
+    <link rel="canonical" href="https://zhufiler.netlify.app/">
+    <meta property="og:title" content="烛文件">
+    <meta property="og:description" content="Kotlin 编写的开源 Android 文件管理器">
+    <meta property="og:image" content="https://zhufiler.netlify.app/icon.png">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://zhufiler.netlify.app/">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mdui@2/mdui.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/mdui@2/mdui.global.min.js"></script>
 </head>
+
 <body>
-  <mdui-layout full-height>
-    <mdui-top-app-bar id="top-bar" variant="small" style="padding-left:16px;padding-right:16px">
-      <mdui-button-icon icon="menu" id="drawer-toggle"></mdui-button-icon>
-      <mdui-top-app-bar-title>烛文件</mdui-top-app-bar-title>
-      <div style="flex-grow:1"></div>
-      <mdui-button-icon icon="dark_mode" id="theme-toggle"></mdui-button-icon>
-    </mdui-top-app-bar>
+    <mdui-layout full-height>
+        <mdui-top-app-bar id="top-bar" variant="small" style="padding-left:16px;padding-right:16px">
+            <mdui-button-icon icon="menu" id="drawer-toggle"></mdui-button-icon>
+            <mdui-top-app-bar-title>烛文件</mdui-top-app-bar-title>
+            <div style="flex-grow:1"></div>
+            <mdui-button-icon icon="dark_mode" id="theme-toggle"></mdui-button-icon>
+        </mdui-top-app-bar>
 
-    <mdui-navigation-drawer id="nav-drawer" modal close-on-esc close-on-overlay-click>
-      <mdui-list style="padding:8px">
-        <mdui-list-item icon="info" data-nav="top" active rounded>简介</mdui-list-item>
-        <mdui-list-item icon="image" data-nav="previews" rounded>预览</mdui-list-item>
-        <mdui-list-item icon="star" data-nav="features" rounded>特性</mdui-list-item>
-        <mdui-list-item icon="code" end-icon="open_in_new" href="https://github.com/Artzhu86/ZhuFiler" target="_blank" rel="noopener" rounded>GitHub</mdui-list-item>
-      </mdui-list>
-    </mdui-navigation-drawer>
+        <mdui-navigation-drawer id="nav-drawer" modal close-on-esc close-on-overlay-click>
+            <mdui-list style="padding:8px">
+                <mdui-list-item icon="info" data-nav="top" active rounded>简介</mdui-list-item>
+                <mdui-list-item icon="image" data-nav="previews" rounded>预览</mdui-list-item>
+                <mdui-list-item icon="star" data-nav="features" rounded>特性</mdui-list-item>
+                <mdui-list-item icon="code" end-icon="open_in_new" href="https://github.com/Artzhu86/ZhuFiler" target="_blank" rel="noopener" rounded>GitHub</mdui-list-item>
+            </mdui-list>
+        </mdui-navigation-drawer>
 
-    <mdui-layout-main class="zf-layout-main">
-      <div id="main-content">
-        <section class="hero">
-          <div class="hero-bg"></div>
-          <div class="container">
-            <div class="hero-content" style="max-width:680px;margin:0 auto;text-align:center">
-              <img src="icon.png" alt="烛文件" class="animate-scale" style="width:216px;max-width:100%;height:auto;aspect-ratio:1;margin:0 auto 24px;display:block">
-              <h1 class="hero-title animate-in">烛文件</h1>
-              <p class="hero-desc animate-in delay-1">Kotlin 编写的开源 Android 文件管理器<br>开源免费，美观强大</p>
-              <div class="hero-actions animate-in delay-3" style="justify-content:center">
-                <mdui-button id="download-btn" icon="download" variant="filled">下载 APK</mdui-button>
-                <mdui-button href="https://github.com/Artzhu86/ZhuFiler" target="_blank" rel="noopener" icon="code" variant="outlined">GitHub</mdui-button>
-              </div>
+        <mdui-layout-main class="zf-layout-main">
+            <div id="main-content">
+                <section class="hero">
+                    <div class="hero-bg"></div>
+                    <div class="container">
+                        <div class="hero-content" style="max-width:680px;margin:0 auto;text-align:center">
+                            <img src="icon.png" alt="烛文件" class="animate-scale" style="width:216px;max-width:100%;height:auto;aspect-ratio:1;margin:0 auto 24px;display:block">
+                            <h1 class="hero-title animate-in">烛文件</h1>
+                            <p class="hero-desc animate-in delay-1">Kotlin 编写的开源 Android 文件管理器<br>开源免费，美观强大</p>
+                            <div class="hero-actions animate-in delay-3" style="justify-content:center">
+                                <mdui-button id="download-btn" icon="download" variant="filled">下载 APK</mdui-button>
+                                <mdui-button href="https://github.com/Artzhu86/ZhuFiler" target="_blank" rel="noopener" icon="code" variant="outlined">GitHub</mdui-button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="section" id="previews">
+                    <div class="container">
+                        <div class="preview-scroll">
+                            <img src="preview1.jpg" alt="文件列表" class="preview-img animate-in delay-1" loading="lazy">
+                            <img src="preview2.jpg" alt="侧边栏导航" class="preview-img animate-in delay-2" loading="lazy">
+                            <img src="preview3.jpg" alt="偏好设置" class="preview-img animate-in delay-3" loading="lazy">
+                        </div>
+                    </div>
+                </section>
+
+                <section class="section" id="features">
+                    <div class="container">
+                        <div class="grid grid-auto">
+                            <mdui-card class="feature-card animate-in delay-1" variant="filled" clickable>
+                                <mdui-icon class="feature-card-icon" name="verified"></mdui-icon>
+                                <h3>开源</h3>
+                                <p>MIT 协议，代码透明可审计，接受社区贡献</p>
+                            </mdui-card>
+                            <mdui-card class="feature-card animate-in delay-2" variant="filled" clickable>
+                                <mdui-icon class="feature-card-icon" name="payment"></mdui-icon>
+                                <h3>免费</h3>
+                                <p>无广告、无内购，所有功能永久免费无限制</p>
+                            </mdui-card>
+                            <mdui-card class="feature-card animate-in delay-3" variant="filled" clickable>
+                                <mdui-icon class="feature-card-icon" name="palette"></mdui-icon>
+                                <h3>美观</h3>
+                                <p>Material You 动态主题，支持深色模式与多套配色</p>
+                            </mdui-card>
+                            <mdui-card class="feature-card animate-in delay-4" variant="filled" clickable>
+                                <mdui-icon class="feature-card-icon" name="extension"></mdui-icon>
+                                <h3>强大</h3>
+                                <p>集成解压、编辑、播放、APK，以及 Shizuku 支持</p>
+                            </mdui-card>
+                        </div>
+                    </div>
+                </section>
             </div>
-          </div>
-        </section>
-
-        <section class="section" id="previews">
-          <div class="container">
-            <div class="preview-scroll">
-              <img src="preview1.jpg" alt="文件列表" class="preview-img animate-in delay-1" loading="lazy">
-              <img src="preview2.jpg" alt="侧边栏导航" class="preview-img animate-in delay-2" loading="lazy">
-              <img src="preview3.jpg" alt="偏好设置" class="preview-img animate-in delay-3" loading="lazy">
-            </div>
-          </div>
-        </section>
-
-        <section class="section" id="features">
-          <div class="container">
-            <div class="grid grid-auto">
-              <mdui-card class="feature-card animate-in delay-1" variant="filled" clickable>
-                <mdui-icon class="feature-card-icon" name="verified"></mdui-icon>
-                <h3>开源</h3>
-                <p>MIT 协议，代码透明可审计，接受社区贡献</p>
-              </mdui-card>
-              <mdui-card class="feature-card animate-in delay-2" variant="filled" clickable>
-                <mdui-icon class="feature-card-icon" name="payment"></mdui-icon>
-                <h3>免费</h3>
-                <p>无广告、无内购，所有功能永久免费无限制</p>
-              </mdui-card>
-              <mdui-card class="feature-card animate-in delay-3" variant="filled" clickable>
-                <mdui-icon class="feature-card-icon" name="palette"></mdui-icon>
-                <h3>美观</h3>
-                <p>Material You 动态主题，支持深色模式与多套配色</p>
-              </mdui-card>
-              <mdui-card class="feature-card animate-in delay-4" variant="filled" clickable>
-                <mdui-icon class="feature-card-icon" name="extension"></mdui-icon>
-                <h3>强大</h3>
-                <p>集成解压、编辑、播放、APK，以及 Shizuku 支持</p>
-              </mdui-card>
-            </div>
-          </div>
-        </section>
-      </div>
-      <footer class="zf-footer">
-        <div class="zf-footer-inner">
-          <div style="font-size:var(--mdui-typescale-body-large-size);font-weight:var(--mdui-typescale-body-large-weight);line-height:var(--mdui-typescale-body-large-line-height);color:rgb(var(--mdui-color-on-surface))">&copy; 2026 烛光</div>
-        </div>
-      </footer>
-    </mdui-layout-main>
-  </mdui-layout>
-  <script type="module" src="main.js"></script>
+            <footer class="zf-footer">
+                <div class="zf-footer-inner">
+                    <div style="font-size:var(--mdui-typescale-body-large-size);font-weight:var(--mdui-typescale-body-large-weight);line-height:var(--mdui-typescale-body-large-line-height);color:rgb(var(--mdui-color-on-surface))">&copy; 2026 烛光</div>
+                </div>
+            </footer>
+        </mdui-layout-main>
+    </mdui-layout>
+    <script type="module" src="main.js"></script>
 </body>
+
 </html>
