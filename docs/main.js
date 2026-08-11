@@ -60,6 +60,20 @@ requestAnimationFrame(() => {
   document.querySelectorAll('.animate-in, .animate-scale').forEach(el => observer.observe(el))
 })
 
+const navItems = navDrawer.querySelectorAll('mdui-list-item[data-nav]')
+const navObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.id || 'top'
+      navItems.forEach(item => {
+        if (item.dataset.nav === id) item.setAttribute('active', '')
+        else item.removeAttribute('active')
+      })
+    }
+  })
+}, { rootMargin: '-50% 0px -50% 0px' })
+document.querySelectorAll('.hero, #previews, #features').forEach(el => navObserver.observe(el))
+
 document.getElementById('download-btn').addEventListener('click', async () => {
   try {
     const res = await fetch('https://api.github.com/repos/Artzhu86/ZhuFiler/releases/latest')
