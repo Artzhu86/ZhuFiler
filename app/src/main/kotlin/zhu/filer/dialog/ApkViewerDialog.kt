@@ -13,7 +13,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.divider.MaterialDivider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -30,8 +29,10 @@ internal data class ApkInfo(
     val packageName: String?,
     val versionName: String?,
     val versionCode: Long?,
+    val signed: Boolean,
     val minSdkLabel: String?,
     val targetSdkLabel: String?,
+    val installedVersion: String?,
     val icon: Drawable?
 )
 
@@ -66,20 +67,16 @@ object ApkViewerDialog {
 
     // 构建头部视图：图标 + 应用名 + 版本名
     private fun buildHeader(activity: Context, file: File, info: ApkInfo): View {
-        val hPad = dpToPx(activity, 16)
-        val vPad = dpToPx(activity, 12)
-
         val header = LinearLayout(activity).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            setPadding(hPad, vPad, hPad, vPad)
         }
 
         // APK图标
         val iconView = ImageView(activity).apply {
             info.icon?.let { setImageDrawable(it) }
-            val iconSize = dpToPx(activity, 48)
-            val iconMarginEnd = dpToPx(activity, 16)
+            val iconSize = dpToPx(activity, 56)
+            val iconMarginEnd = dpToPx(activity, 8)
             layoutParams = LinearLayout.LayoutParams(iconSize, iconSize).apply {
                 marginEnd = iconMarginEnd
             }
@@ -120,9 +117,7 @@ object ApkViewerDialog {
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                topMargin = dpToPx(activity, 2)
-            }
+            )
         }
 
         textLayout.addView(nameView)
@@ -131,37 +126,30 @@ object ApkViewerDialog {
         header.addView(iconView)
         header.addView(textLayout)
 
-        // 分隔线，inset 与内容 padding 对齐
-        val container = LinearLayout(activity).apply {
-            orientation = LinearLayout.VERTICAL
-        }
-        container.addView(header)
-
-        val divider = MaterialDivider(activity).apply {
-            setDividerInsetStart(hPad)
-            setDividerInsetEnd(hPad)
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            )
-        }
-        container.addView(divider)
-
-        return container
+        return header
     }
 
     // 解析APK信息
     private fun parseApkInfo(activity: AppCompatActivity, file: File): ApkInfo {
         val pm = activity.packageManager
-        val packageInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            pm.getPackageArchiveInfo(file.absolutePath, PackageManager.PackageInfoFlags.of(0))
+
+        // 包含签名标志
+        val sigFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            PackageManager.GET_SIGNING_CERTIFICATES
         } else {
             @Suppress("DEPRECATION")
-            pm.getPackageArchiveInfo(file.absolutePath, 0)
+            PackageManager.GET_SIGNATURES
+        }
+
+        val packageInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            pm.getPackageArchiveInfo(file.absolutePath, PackageManager.PackageInfoFlags.of(sigFlags.toLong()))
+        } else {
+            @Suppress("DEPRECATION")
+            pm.getPackageArchiveInfo(file.absolutePath, sigFlags)
         }
 
         if (packageInfo == null) {
-            return ApkInfo(null, null, null, null, null, null, null)
+            return ApkInfo(null, null, null, null, false, null, null, null, null)
         }
 
         val appInfo = packageInfo.applicationInfo
@@ -179,12 +167,36 @@ object ApkViewerDialog {
             packageInfo.versionCode.toLong()
         }
 
+        // 签名状态
+        val signed = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            packageInfo.signingInfo?.hasMultipleSigners() == true ||
+                packageInfo.signingInfo?.signingCertificateHistory?.isNotEmpty() == true
+        } else {
+            @Suppress("DEPRECATION")
+            packageInfo.signatures?.isNotEmpty() == true
+        }
+
+        // 已安装版本
+        val installedVersion = try {
+            val installed = pm.getPackageInfo(packageName, 0)
+            val installedVersionName = installed.versionName ?: ""
+            val installedVersionCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                installed.longVersionCode
+            } else {
+                @Suppress("DEPRECATION")
+                installed.versionCode.toLong()
+            }
+            "$installedVersionName ($installedVersionCode)"
+        } catch (e: PackageManager.NameNotFoundException) {
+            null
+        }
+
         val minSdk = appInfo?.minSdkVersion ?: 0
         val targetSdk = appInfo?.targetSdkVersion ?: 0
         val minSdkLabel = sdkVersionToLabel(minSdk)
         val targetSdkLabel = sdkVersionToLabel(targetSdk)
 
-        return ApkInfo(label, packageName, versionName, versionCode, minSdkLabel, targetSdkLabel, icon)
+        return ApkInfo(label, packageName, versionName, versionCode, signed, minSdkLabel, targetSdkLabel, installedVersion, icon)
     }
 
     // 安装APK

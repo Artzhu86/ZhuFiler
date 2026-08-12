@@ -94,58 +94,88 @@ fun createCopyableText(
     }
 }
 
-// 统一的水平内边距
+// 统一的内边距
 private const val HORIZONTAL_PADDING_DP = 16
-private const val ROW_VERTICAL_PADDING_DP = 8
-private const val LABEL_WIDTH_DP = 88
+private const val ROW_VERTICAL_PADDING_DP = 6
+private const val COLUMN_SPACING_DP = 12
 
-// 构建属性列表视图（每行左标签右值，长按复制值）
+// 构建属性列表视图（左列属性名+右列属性值，长按复制值）
 fun buildPropertiesView(
     context: Context,
     properties: List<Pair<String, String>>,
     headerView: View? = null
 ): View {
+    val hPad = dpToPx(context, HORIZONTAL_PADDING_DP)
+    val vPad = dpToPx(context, ROW_VERTICAL_PADDING_DP)
+    val colSpacing = dpToPx(context, COLUMN_SPACING_DP)
+    val labelColor = getThemeColor(context, com.google.android.material.R.attr.colorOnSurfaceVariant)
+    val valueColor = getThemeColor(context, com.google.android.material.R.attr.colorOnSurface)
+
     val scrollView = ScrollView(context)
     val container = LinearLayout(context).apply {
         orientation = LinearLayout.VERTICAL
+        setPadding(hPad, vPad, hPad, vPad)
     }
 
     // 插入头部视图（如有）
     headerView?.let { container.addView(it) }
 
-    val hPad = dpToPx(context, HORIZONTAL_PADDING_DP)
-    val vPad = dpToPx(context, ROW_VERTICAL_PADDING_DP)
-    val labelColor = getThemeColor(context, com.google.android.material.R.attr.colorOnSurfaceVariant)
-    val valueColor = getThemeColor(context, com.google.android.material.R.attr.colorOnSurface)
-    val labelWidth = dpToPx(context, LABEL_WIDTH_DP)
+    // 左右两列竖向布局，属性名列宽度自适应最宽文本
+    val columnsLayout = LinearLayout(context).apply {
+        orientation = LinearLayout.HORIZONTAL
+        layoutParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+    }
+
+    val labelColumn = LinearLayout(context).apply {
+        orientation = LinearLayout.VERTICAL
+        layoutParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        setPadding(0, 0, colSpacing, 0)
+    }
+
+    val valueColumn = LinearLayout(context).apply {
+        orientation = LinearLayout.VERTICAL
+        layoutParams = LinearLayout.LayoutParams(
+            0,
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+            1f
+        )
+    }
 
     properties.forEach { (label, value) ->
-        val row = LinearLayout(context).apply {
-            orientation = LinearLayout.HORIZONTAL
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            )
-            setPadding(hPad, vPad, hPad, vPad)
-            gravity = android.view.Gravity.CENTER_VERTICAL
-        }
-
         val labelTv = TextView(context).apply {
             text = label
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
             setTextColor(labelColor)
-            layoutParams = LinearLayout.LayoutParams(labelWidth, LinearLayout.LayoutParams.WRAP_CONTENT)
+            val hPadInner = dpToPx(context, 6)
+            val vPadInner = dpToPx(context, 4)
+            setPadding(hPadInner, vPadInner, hPadInner, vPadInner)
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
         }
 
         val valueTv = createCopyableText(context, value, textSizeSp = 14f, textColor = valueColor).apply {
             gravity = android.view.Gravity.START
-            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
         }
 
-        row.addView(labelTv)
-        row.addView(valueTv)
-        container.addView(row)
+        labelColumn.addView(labelTv)
+        valueColumn.addView(valueTv)
     }
+
+    columnsLayout.addView(labelColumn)
+    columnsLayout.addView(valueColumn)
+    container.addView(columnsLayout)
 
     scrollView.addView(container)
     return scrollView

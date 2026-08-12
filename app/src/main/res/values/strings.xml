@@ -101,8 +101,13 @@
     <string name="apk_version_name">版本名</string>
     <string name="apk_version_code">版本代码</string>
     <string name="apk_size">文件大小</string>
+    <string name="apk_signature">签名状态</string>
+    <string name="apk_signed">已签名</string>
+    <string name="apk_unsigned">未签名</string>
     <string name="apk_min_sdk">最低系统</string>
     <string name="apk_target_sdk">目标系统</string>
+    <string name="apk_installed">已安装</string>
+    <string name="apk_not_installed">未安装</string>
     <string name="compress">压缩</string>
     <string name="create_archive">创建归档</string>
     <string name="enter_password">输入密码</string>
