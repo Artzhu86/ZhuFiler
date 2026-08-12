@@ -78,6 +78,7 @@ private class AboutAdapter(
 
     private class HeaderViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val iconIv: ImageView = view.findViewById(R.id.ivIcon)
+        val appNameTv: TextView = view.findViewById(R.id.tvAppName)
         val versionTv: TextView = view.findViewById(R.id.tvVersion)
     }
 
@@ -109,6 +110,15 @@ private class AboutAdapter(
                     holder.iconIv.startAnimation(rotate)
                     true
                 }
+                val copyListener = View.OnLongClickListener { v ->
+                    val clipboard = v.context
+                        .getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                    clipboard.setPrimaryClip(android.content.ClipData.newPlainText("text", (v as TextView).text))
+                    android.widget.Toast.makeText(v.context, v.context.getString(R.string.copied_to_clipboard), android.widget.Toast.LENGTH_SHORT).show()
+                    true
+                }
+                holder.appNameTv.setOnLongClickListener(copyListener)
+                holder.versionTv.setOnLongClickListener(copyListener)
             }
             is ItemViewHolder -> {
                 val item = items[position - 1]

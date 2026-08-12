@@ -16,7 +16,6 @@ import io.getstream.photoview.PhotoView
 import java.io.File
 import zhu.filer.R
 import zhu.filer.ui.applyToolbarTitleName
-import zhu.filer.ui.buildDialogTitle
 import zhu.filer.util.formatDate
 import zhu.filer.util.toast
 import zhu.filer.databinding.ItemImagePageBinding
@@ -74,7 +73,7 @@ internal fun ImageViewerActivity.updateSubtitle() {
 internal fun ImageViewerActivity.confirmDeleteCurrent() {
     val file = currentFile()
     com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-        .setCustomTitle(buildDialogTitle(this, R.string.delete))
+        .setTitle(R.string.delete)
         .setMessage(getString(R.string.delete_message, file.name))
         .setNegativeButton(R.string.cancel, null)
         .setPositiveButton(R.string.delete) { _, _ ->

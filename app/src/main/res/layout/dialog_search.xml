@@ -4,20 +4,27 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:paddingStart="16dp"
-    android:paddingEnd="16dp">
+    android:paddingTop="@dimen/abc_dialog_title_divider_material"
+    android:paddingBottom="8dp">
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/search_input_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginStart="?dialogPreferredPadding"
+        android:layout_marginEnd="?dialogPreferredPadding"
+        android:layout_marginTop="4dp"
         app:hintEnabled="false">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/search_input_edit"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:singleLine="true" />
+            android:importantForAutofill="no"
+            android:inputType="text"
+            android:singleLine="true">
+            <requestFocus />
+        </com.google.android.material.textfield.TextInputEditText>
 
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -25,6 +32,9 @@
         android:id="@+id/search_subdir_checkbox"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="?dialogPreferredPadding"
+        android:layout_marginEnd="?dialogPreferredPadding"
+        android:layout_marginTop="8dp"
         android:checked="true" />
 
 </LinearLayout>

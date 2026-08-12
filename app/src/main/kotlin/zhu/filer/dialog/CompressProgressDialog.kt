@@ -9,8 +9,6 @@ import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.progressindicator.LinearProgressIndicator
 import zhu.filer.R
-import zhu.filer.ui.buildDialogTitle
-
 // 创建压缩进度对话框
 fun createCompressProgressDialog(
     activity: AppCompatActivity,
@@ -26,7 +24,7 @@ fun createCompressProgressDialog(
     progressBar.setProgressCompat(0, false)
 
     val dialog = MaterialAlertDialogBuilder(activity)
-        .setCustomTitle(buildDialogTitle(activity, R.string.compress_progress_title))
+        .setTitle(R.string.compress_progress_title)
         .setView(container)
         .setCancelable(false)
         .setPositiveButton(R.string.hide) { _, _ -> onHide() }

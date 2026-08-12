@@ -10,7 +10,6 @@ import zhu.filer.archive.ArchiveEngine
 import zhu.filer.archive.deleteEntry
 import zhu.filer.FileItem
 import zhu.filer.R
-import zhu.filer.ui.buildDialogTitle
 import zhu.filer.dialog.extractArchiveItemToTemp
 import zhu.filer.dialog.showCompressDialog
 import zhu.filer.util.toast
@@ -62,7 +61,7 @@ internal fun MultiSelectController.batchArchiveDelete(items: List<FileItem>) {
     val archiveFile = getArchiveFile() ?: return
     val password = getArchivePassword()
     MaterialAlertDialogBuilder(activity)
-        .setCustomTitle(buildDialogTitle(activity, R.string.delete))
+        .setTitle(R.string.delete)
         .setMessage(activity.getString(R.string.batch_delete_confirm, items.size))
         .setPositiveButton(R.string.delete) { _, _ ->
             activity.lifecycleScope.launch {

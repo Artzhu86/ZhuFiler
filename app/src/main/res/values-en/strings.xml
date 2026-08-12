@@ -99,8 +99,8 @@
     <string name="apk_version_name">Version Name</string>
     <string name="apk_version_code">Version Code</string>
     <string name="apk_size">File Size</string>
-    <string name="apk_min_sdk">Min SDK</string>
-    <string name="apk_target_sdk">Target SDK</string>
+    <string name="apk_min_sdk">Min System</string>
+    <string name="apk_target_sdk">Target System</string>
     <string name="compress">Compress</string>
     <string name="create_archive">Create archive</string>
     <string name="enter_password">Enter password</string>

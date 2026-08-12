@@ -11,7 +11,6 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import zhu.filer.R
 import zhu.filer.util.ShizukuManager
-import zhu.filer.ui.buildDialogTitle
 import zhu.filer.operation.FileOpener
 import zhu.filer.util.shareFile
 import zhu.filer.ui.showDetailsDialog
@@ -60,7 +59,7 @@ fun showFileOpsDialog(
             activity.getString(R.string.copy) -> onCopyCut(file, false)
             activity.getString(R.string.move) -> onCopyCut(file, true)
             activity.getString(R.string.delete) -> {
-                MaterialAlertDialogBuilder(activity).setCustomTitle(buildDialogTitle(activity, R.string.delete))
+                MaterialAlertDialogBuilder(activity).setTitle(R.string.delete)
                     .setMessage(activity.getString(R.string.delete_message, file.name))
                     .setPositiveButton(R.string.delete) { _, _ ->
                         activity.lifecycleScope.launch {

@@ -15,8 +15,6 @@ import java.io.File
 import zhu.filer.FileItem
 import zhu.filer.browser.FileListAdapter
 import zhu.filer.R
-import zhu.filer.ui.buildDialogTitle
-import zhu.filer.ui.createDialogContainer
 import zhu.filer.ui.createInput
 import zhu.filer.ui.dpToPx
 import zhu.filer.ui.focusAndShowKeyboard
@@ -25,14 +23,12 @@ import zhu.filer.util.toast
 
 // 显示导航对话框
 fun showNavigateDialog(activity: AppCompatActivity, currentPath: String, loadDir: suspend (File) -> Unit, prefs: SharedPreferences) {
-    val rootLayout = createDialogContainer(activity)
     val (inputLayout, editText) = createInput(activity, currentPath)
-    rootLayout.addView(inputLayout)
 
     lateinit var dialog: AlertDialog
     val builder = MaterialAlertDialogBuilder(activity)
-        .setCustomTitle(buildDialogTitle(activity, R.string.current_directory))
-        .setView(rootLayout)
+        .setTitle(R.string.current_directory)
+        .setView(inputLayout)
         .setPositiveButton(R.string.action_switch) { _, _ ->
             val path = editText.text?.toString()?.trim() ?: ""
             if (path.isNotEmpty()) {
@@ -68,7 +64,7 @@ fun showNavigateDialog(activity: AppCompatActivity, currentPath: String, loadDir
             }
 
             recentDialog = MaterialAlertDialogBuilder(activity)
-                .setCustomTitle(buildDialogTitle(activity, R.string.recent))
+                .setTitle(R.string.recent)
                 .setView(rv)
                 .setNegativeButton(R.string.cancel, null)
                 .show()

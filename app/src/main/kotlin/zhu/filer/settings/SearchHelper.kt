@@ -16,7 +16,6 @@ import java.io.File
 import zhu.filer.FileItem
 import zhu.filer.browser.FileListAdapter
 import zhu.filer.R
-import zhu.filer.ui.buildDialogTitle
 import zhu.filer.ui.focusAndShowKeyboard
 import zhu.filer.util.toast
 
@@ -47,7 +46,7 @@ class SearchHelper(
         checkBox.text = activity.getString(R.string.subdirectory_search)
 
         val searchDialog = MaterialAlertDialogBuilder(activity)
-            .setCustomTitle(buildDialogTitle(activity, R.string.search))
+            .setTitle(R.string.search)
             .setView(rootLayout)
             .setPositiveButton(R.string.ok) { _, _ ->
                 val query = editText.text?.toString()?.trim() ?: ""

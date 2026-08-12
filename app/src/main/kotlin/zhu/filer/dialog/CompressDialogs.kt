@@ -10,8 +10,6 @@ import com.google.android.material.radiobutton.MaterialRadioButton
 import zhu.filer.archive.ArchiveFormat
 import zhu.filer.archive.stripKnownArchiveExt
 import zhu.filer.R
-import zhu.filer.ui.buildDialogTitle
-import zhu.filer.ui.createDialogContainer
 import zhu.filer.ui.createInput
 import zhu.filer.ui.createPasswordInput
 import zhu.filer.ui.dpToPx
@@ -20,13 +18,11 @@ import java.io.File
 
 // 显示归档密码对话框
 fun showArchivePasswordDialog(activity: AppCompatActivity, onConfirm: (String) -> Unit) {
-    val rootLayout = createDialogContainer(activity)
     val (inputLayout, editText) = createPasswordInput(activity, activity.getString(R.string.password))
-    rootLayout.addView(inputLayout)
 
     MaterialAlertDialogBuilder(activity)
-        .setCustomTitle(buildDialogTitle(activity, R.string.enter_password))
-        .setView(rootLayout)
+        .setTitle(R.string.enter_password)
+        .setView(inputLayout)
         .setPositiveButton(R.string.ok) { _, _ ->
             val password = editText.text?.toString() ?: ""
             onConfirm(password)
@@ -43,7 +39,9 @@ fun showCompressDialog(
     currentDir: File,
     onCompress: (outputFile: File, format: ArchiveFormat, password: String?) -> Unit
 ) {
-    val rootLayout = createDialogContainer(activity)
+    val container = android.widget.LinearLayout(activity).apply {
+        orientation = android.widget.LinearLayout.VERTICAL
+    }
 
     val baseName = if (sources.size == 1) {
         sources[0].nameWithoutExtension
@@ -53,21 +51,24 @@ fun showCompressDialog(
     val defaultName = "$baseName.zip"
 
     val (nameLayout, nameEdit) = createInput(activity, defaultName)
-    rootLayout.addView(nameLayout)
+    container.addView(nameLayout)
 
     val dotIndex = defaultName.lastIndexOf('.')
     if (dotIndex > 0) {
         nameEdit.setSelection(0, dotIndex)
     }
 
+    val dialogPadding = android.util.TypedValue().apply {
+        activity.theme.resolveAttribute(android.R.attr.dialogPreferredPadding, this, true)
+    }.let { android.util.TypedValue.complexToDimensionPixelSize(it.data, activity.resources.displayMetrics) }
+
     val radioGroup = RadioGroup(activity).apply {
         orientation = RadioGroup.HORIZONTAL
+        setPadding(dialogPadding, dpToPx(activity, 8), dialogPadding, 0)
         layoutParams = LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
-        ).apply {
-            topMargin = dpToPx(activity, 8)
-        }
+        )
     }
     // 压缩格式选项
     data class RadioOpt(val format: ArchiveFormat, val radio: MaterialRadioButton)
@@ -79,10 +80,10 @@ fun showCompressDialog(
         radioGroup.addView(radio)
         RadioOpt(ArchiveFormat.entries.first { it.extension == label }, radio)
     }
-    rootLayout.addView(radioGroup)
+    container.addView(radioGroup)
 
     val (pwdLayout, pwdEdit) = createPasswordInput(activity, activity.getString(R.string.password))
-    rootLayout.addView(pwdLayout)
+    container.addView(pwdLayout)
 
     radioGroup.setOnCheckedChangeListener { _, checkedId ->
         val opt = opts.first { it.radio.id == checkedId }
@@ -92,13 +93,13 @@ fun showCompressDialog(
         nameEdit.setText(newName)
         nameEdit.setSelection(0, stripped.length)
         val supportsPassword = opt.format == ArchiveFormat.SEVEN_ZIP || opt.format == ArchiveFormat.ZIP
-        pwdLayout.isEnabled = supportsPassword
+        pwdEdit.isEnabled = supportsPassword
         if (!supportsPassword) pwdEdit.setText("")
     }
 
     MaterialAlertDialogBuilder(activity)
-        .setCustomTitle(buildDialogTitle(activity, R.string.create_archive))
-        .setView(rootLayout)
+        .setTitle(R.string.create_archive)
+        .setView(container)
         .setPositiveButton(R.string.ok) { _, _ ->
             val name = nameEdit.text?.toString()?.trim() ?: ""
             val password = pwdEdit.text?.toString()?.trim()?.takeIf { it.isNotEmpty() }

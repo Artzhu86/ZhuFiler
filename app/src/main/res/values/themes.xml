@@ -269,11 +269,11 @@
     </style>
 
     <style name="ThemeOverlay.App.AlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
-        <item name="textAppearanceBodyMedium">@style/TextAppearance.App.DialogBody</item>
+        <item name="materialAlertDialogBodyTextStyle">@style/TextAppearance.App.DialogBody</item>
     </style>
 
     <style name="TextAppearance.App.DialogBody" parent="TextAppearance.Material3.BodyMedium">
-        <item name="android:textSize">17sp</item>
+        <item name="android:textSize">16sp</item>
     </style>
 
     <style name="ToolbarSubtitle" parent="TextAppearance.Material3.TitleSmall">

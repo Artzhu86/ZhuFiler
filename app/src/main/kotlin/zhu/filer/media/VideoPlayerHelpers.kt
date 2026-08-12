@@ -10,7 +10,6 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import zhu.filer.R
-import zhu.filer.ui.buildDialogTitle
 import zhu.filer.util.formatDate
 import zhu.filer.util.toast
 
@@ -113,7 +112,7 @@ internal fun VideoPlayerActivity.releasePlayer() {
 // 确认删除当前
 internal fun VideoPlayerActivity.confirmDeleteCurrent() {
     com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-        .setCustomTitle(buildDialogTitle(this, R.string.delete))
+        .setTitle(R.string.delete)
         .setMessage(getString(R.string.delete_message, file.name))
         .setNegativeButton(R.string.cancel, null)
         .setPositiveButton(R.string.delete) { _, _ ->

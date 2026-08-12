@@ -10,8 +10,6 @@ import java.io.File
 import zhu.filer.FileItem
 import zhu.filer.R
 import zhu.filer.util.ShizukuManager
-import zhu.filer.ui.buildDialogTitle
-import zhu.filer.ui.createDialogContainer
 import zhu.filer.ui.createInput
 import zhu.filer.ui.focusAndShowKeyboard
 import zhu.filer.util.isValid
@@ -19,13 +17,11 @@ import zhu.filer.util.toast
 
 // 显示创建对话框
 fun showCreateDialog(activity: AppCompatActivity, currentDir: File, loadDir: suspend (File, String?) -> Unit) {
-    val rootLayout = createDialogContainer(activity)
     val (inputLayout, edit) = createInput(activity)
-    rootLayout.addView(inputLayout)
 
     MaterialAlertDialogBuilder(activity)
-        .setCustomTitle(buildDialogTitle(activity, R.string.create))
-        .setView(rootLayout)
+        .setTitle(R.string.create)
+        .setView(inputLayout)
         .setPositiveButton(R.string.file) { _, _ ->
             val name = edit.text?.toString()?.trim() ?: ""
             if (isValid(name)) {
@@ -60,9 +56,7 @@ fun showCreateDialog(activity: AppCompatActivity, currentDir: File, loadDir: sus
 // 显示归档重命名对话框
 fun showArchiveRenameDialog(activity: AppCompatActivity, item: FileItem, onRename: (FileItem, String) -> Unit) {
     val oldName = item.displayName
-    val rootLayout = createDialogContainer(activity)
     val (inputLayout, editText) = createInput(activity, oldName)
-    rootLayout.addView(inputLayout)
 
     val dotIndex = oldName.lastIndexOf('.')
     if (dotIndex > 0 && !item.isDirectory) {
@@ -72,8 +66,8 @@ fun showArchiveRenameDialog(activity: AppCompatActivity, item: FileItem, onRenam
     }
 
     MaterialAlertDialogBuilder(activity)
-        .setCustomTitle(buildDialogTitle(activity, R.string.rename))
-        .setView(rootLayout)
+        .setTitle(R.string.rename)
+        .setView(inputLayout)
         .setPositiveButton(R.string.ok) { _, _ ->
             val newName = editText.text?.toString()?.trim() ?: ""
             when {

@@ -12,14 +12,13 @@ import java.io.File
 import zhu.filer.R
 import zhu.filer.util.ShizukuManager
 import zhu.filer.util.deleteFile
-import zhu.filer.ui.buildDialogTitle
 import zhu.filer.util.toast
 
 // 批量删除
 internal fun MultiSelectController.batchDelete(files: List<File>) {
     if (files.isEmpty()) return
     MaterialAlertDialogBuilder(activity)
-        .setCustomTitle(buildDialogTitle(activity, R.string.delete))
+        .setTitle(R.string.delete)
         .setMessage(activity.getString(R.string.batch_delete_confirm, files.size))
         .setPositiveButton(R.string.delete) { _, _ ->
             activity.lifecycleScope.launch {

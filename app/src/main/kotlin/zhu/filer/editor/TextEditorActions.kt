@@ -5,7 +5,6 @@ import android.widget.Toast
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import zhu.filer.R
 import zhu.filer.ui.applyToolbarTitleName
-import zhu.filer.ui.buildDialogTitle
 import zhu.filer.ui.getThemeColor
 import com.google.android.material.R as materialR
 
@@ -73,7 +72,7 @@ internal fun TextEditorActivity.saveFile(): Boolean {
 // 确认退出
 internal fun TextEditorActivity.confirmExit() {
     MaterialAlertDialogBuilder(this)
-        .setCustomTitle(buildDialogTitle(this, file.name))
+        .setTitle(file.name)
         .setMessage(R.string.unsaved_changes)
         .setPositiveButton(R.string.save_and_exit) { _, _ ->
             if (saveFile()) {

@@ -23,7 +23,6 @@ import zhu.filer.FileItem
 import zhu.filer.browser.FileListAdapter
 import zhu.filer.R
 import zhu.filer.util.ShizukuManager
-import zhu.filer.ui.buildDialogTitle
 import zhu.filer.util.listFilesWithDetails
 import zhu.filer.util.createFileItem
 import com.google.android.material.R as materialR
@@ -41,7 +40,7 @@ internal fun SearchHelper.performSearch(query: String, recursive: Boolean = true
     progressBar.show()
 
     val progressDialog = MaterialAlertDialogBuilder(activity)
-        .setCustomTitle(buildDialogTitle(activity, R.string.searching))
+        .setTitle(R.string.searching)
         .setView(container)
         .setCancelable(false)
         .setPositiveButton(R.string.stop) { _, _ ->
@@ -131,7 +130,7 @@ internal fun SearchHelper.showSearchResult(items: List<FileItem>) {
     }
 
     resultDialog = MaterialAlertDialogBuilder(activity)
-        .setCustomTitle(buildDialogTitle(activity, activity.getString(R.string.search_result_count, items.size)))
+        .setTitle(activity.getString(R.string.search_result_count, items.size))
         .setView(root)
         .setNegativeButton(R.string.close, null)
         .show()

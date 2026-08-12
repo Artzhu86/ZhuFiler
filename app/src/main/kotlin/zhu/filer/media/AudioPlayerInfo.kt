@@ -5,7 +5,6 @@ import android.view.View
 import androidx.media3.common.util.UnstableApi
 import com.bumptech.glide.Glide
 import zhu.filer.R
-import zhu.filer.ui.buildDialogTitle
 import zhu.filer.util.formatDate
 import zhu.filer.util.getAudioArtwork
 import zhu.filer.util.getAudioMetadata
@@ -52,7 +51,7 @@ internal fun AudioPlayerActivity.updateSubtitle() {
 // 确认删除当前
 internal fun AudioPlayerActivity.confirmDeleteCurrent() {
     com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-        .setCustomTitle(buildDialogTitle(this, R.string.delete))
+        .setTitle(R.string.delete)
         .setMessage(getString(R.string.delete_message, file.name))
         .setNegativeButton(R.string.cancel, null)
         .setPositiveButton(R.string.delete) { _, _ ->

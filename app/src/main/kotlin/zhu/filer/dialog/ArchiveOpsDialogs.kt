@@ -7,7 +7,6 @@ import androidx.appcompat.widget.PopupMenu
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import zhu.filer.FileItem
 import zhu.filer.R
-import zhu.filer.ui.buildDialogTitle
 import zhu.filer.operation.FileOpener
 
 // 显示归档条目操作
@@ -45,7 +44,7 @@ fun showArchiveItemOpsDialog(
             activity.getString(R.string.move) -> onCopyCut(item, true)
             activity.getString(R.string.rename) -> showArchiveRenameDialog(activity, item, onRename)
             activity.getString(R.string.delete) -> {
-                MaterialAlertDialogBuilder(activity).setCustomTitle(buildDialogTitle(activity, R.string.delete))
+                MaterialAlertDialogBuilder(activity).setTitle(R.string.delete)
                     .setMessage(activity.getString(R.string.delete_message, item.displayName))
                     .setPositiveButton(R.string.delete) { _, _ -> onDelete(item) }
                     .setNegativeButton(R.string.cancel, null).show()
@@ -64,7 +63,7 @@ fun showArchiveItemOpsDialog(
 fun showArchiveEntryDetailsDialog(activity: AppCompatActivity, item: FileItem) {
     val sizeStr = Formatter.formatFileSize(activity, item.size)
     val dialog = MaterialAlertDialogBuilder(activity)
-        .setCustomTitle(buildDialogTitle(activity, item.displayName))
+        .setTitle(item.displayName)
         .setMessage(
             "${activity.getString(R.string.name_label)}: ${item.displayName}\n" +
             "${activity.getString(R.string.type_label)}: ${if (item.isDirectory) activity.getString(R.string.directory) else activity.getString(R.string.file)}\n" +

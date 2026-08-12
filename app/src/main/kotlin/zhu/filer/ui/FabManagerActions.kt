@@ -17,7 +17,7 @@ internal fun FabManager.handlePaste(clipboard: ClipboardManager) {
     val conflicts = files.filter { File(targetDir, it.name).exists() }
     if (conflicts.isNotEmpty()) {
         MaterialAlertDialogBuilder(activity)
-            .setCustomTitle(buildDialogTitle(activity, R.string.target_exists))
+            .setTitle(R.string.target_exists)
             .setMessage(activity.getString(R.string.overwrite_conflict, conflicts.size))
             .setPositiveButton(R.string.overwrite) { _, _ ->
                 onPaste?.invoke(files, isMove, true)

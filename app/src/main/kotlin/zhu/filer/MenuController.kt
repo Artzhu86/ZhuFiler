@@ -9,9 +9,6 @@ import zhu.filer.browser.FileBrowserController
 import zhu.filer.browser.refresh
 import zhu.filer.settings.BookmarkManager
 import zhu.filer.settings.SearchHelper
-import zhu.filer.ui.buildDialogTitle
-import zhu.filer.ui.createSingleChoiceAdapter
-import zhu.filer.ui.showListDialog
 import zhu.filer.util.SortMode
 
 // 菜单控制器
@@ -103,16 +100,15 @@ class MenuController(
         val modes = SortMode.entries
         val labels = modes.map { activity.getString(it.labelRes) }.toTypedArray()
         val current = modes.indexOf(sortMode)
-        val dialog = MaterialAlertDialogBuilder(activity)
-            .setCustomTitle(buildDialogTitle(activity, R.string.sort_by))
-            .setSingleChoiceItems(createSingleChoiceAdapter(activity, labels), current) { dialog, which ->
+        MaterialAlertDialogBuilder(activity)
+            .setTitle(R.string.sort_by)
+            .setSingleChoiceItems(labels, current) { dialog, which ->
                 sortMode = modes[which]
                 prefs.edit().putString("sort_mode", sortMode.name).apply()
                 browserController.refresh()
                 dialog.dismiss()
             }
             .setNegativeButton(R.string.cancel, null)
-            .create()
-        showListDialog(dialog)
+            .show()
     }
 }

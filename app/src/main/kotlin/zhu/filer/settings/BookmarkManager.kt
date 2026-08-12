@@ -8,7 +8,6 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.navigation.NavigationView
 import java.io.File
 import zhu.filer.R
-import zhu.filer.ui.buildDialogTitle
 import zhu.filer.util.toast
 
 // 书签管理器
@@ -64,7 +63,7 @@ class BookmarkManager(
         }
         val displayName = File(path).name.ifEmpty { path }
         MaterialAlertDialogBuilder(activity)
-            .setCustomTitle(buildDialogTitle(activity, R.string.remove_bookmark))
+            .setTitle(R.string.remove_bookmark)
             .setMessage(activity.getString(R.string.confirm_remove_bookmark_msg, displayName))
             .setPositiveButton(R.string.remove) { _, _ ->
                 removeBookmark(path)

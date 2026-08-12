@@ -9,8 +9,6 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import zhu.filer.R
 import zhu.filer.util.ShizukuManager
-import zhu.filer.ui.buildDialogTitle
-import zhu.filer.ui.createDialogContainer
 import zhu.filer.ui.createInput
 import zhu.filer.ui.focusAndShowKeyboard
 import zhu.filer.util.isValid
@@ -19,9 +17,7 @@ import zhu.filer.util.toast
 // 显示重命名对话框
 fun showRenameDialog(activity: AppCompatActivity, currentDir: File, loadDir: suspend (File) -> Unit, file: File, onRenamed: (() -> Unit)? = null) {
     val oldName = file.name
-    val rootLayout = createDialogContainer(activity)
     val (inputLayout, editText) = createInput(activity, oldName)
-    rootLayout.addView(inputLayout)
 
     val dotIndex = oldName.lastIndexOf('.')
     if (dotIndex > 0 && !file.isDirectory) {
@@ -31,8 +27,8 @@ fun showRenameDialog(activity: AppCompatActivity, currentDir: File, loadDir: sus
     }
 
     MaterialAlertDialogBuilder(activity)
-        .setCustomTitle(buildDialogTitle(activity, R.string.rename))
-        .setView(rootLayout)
+        .setTitle(R.string.rename)
+        .setView(inputLayout)
         .setPositiveButton(R.string.ok) { _, _ ->
             val newName = editText.text?.toString()?.trim() ?: ""
             when {
